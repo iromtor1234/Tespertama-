@@ -1,11 +1,5 @@
-let config = {
-  passwords: ["Rull"],
-  keyLength: 20,
-  keyPrefix: "",
-  keySuffix: ""
-};
+let config = [];
 
-// Ambil config dari config.json
 fetch('config.json')
   .then(response => response.json())
   .then(data => {
@@ -15,36 +9,31 @@ fetch('config.json')
     console.error('Gagal load config.json, pakai default.', err);
   });
 
+let entryCount = 0;
+
 document.getElementById("generateBtn").addEventListener("click", function () {
   const inputPassword = document.getElementById("passwordInput").value;
   const keyBox = document.getElementById("keyBox");
   const errorBox = document.getElementById("errorBox");
+  const spinner = document.getElementById("spinner");
 
-  // Cek apakah password termasuk salah satu yang valid
-  if (config.passwords.includes(inputPassword)) {
+  const matched = config.find(entry => entry.password === inputPassword);
+
+  if (matched) {
     keyBox.classList.add("hidden");
     errorBox.classList.add("hidden");
-    keyBox.textContent = "Processing... Please wait";
-    keyBox.classList.remove("hidden");
-    keyBox.classList.add("loading");
+    spinner.classList.remove("hidden");
 
     setTimeout(() => {
-      const randomPart = generateKey(config.keyLength);
-      const finalKey = `${config.keyPrefix}${randomPart}${config.keySuffix}`;
-      keyBox.classList.remove("loading");
-      keyBox.textContent = finalKey;
+      spinner.classList.add("hidden");
+      entryCount++;
+      const existingText = keyBox.textContent ? keyBox.textContent + "\n" : "";
+      keyBox.textContent = `${existingText}${entryCount}. Password: ${inputPassword}\nGet key: ${matched.key}`;
+      keyBox.classList.remove("hidden");
     }, 5000);
   } else {
     keyBox.classList.add("hidden");
+    spinner.classList.add("hidden");
     errorBox.classList.remove("hidden");
   }
 });
-
-function generateKey(length) {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-      }
