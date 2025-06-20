@@ -27,9 +27,12 @@ document.getElementById("generateBtn").addEventListener("click", function () {
     setTimeout(() => {
       spinner.classList.add("hidden");
       entryCount++;
+      const keyText = `${entryCount}. Password: ${inputPassword}\nGet key: ${matched.key}`;
       const existingText = keyBox.textContent ? keyBox.textContent + "\n" : "";
-      keyBox.textContent = `${existingText}${entryCount}. Password: ${inputPassword}\nGet key: ${matched.key}`;
+      keyBox.textContent = existingText + keyText;
       keyBox.classList.remove("hidden");
+
+      copyToClipboard(matched.key);
     }, 5000);
   } else {
     keyBox.classList.add("hidden");
@@ -37,3 +40,31 @@ document.getElementById("generateBtn").addEventListener("click", function () {
     errorBox.classList.remove("hidden");
   }
 });
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    showToast("✅ Key berhasil disalin!", true);
+  }).catch(err => {
+    showToast("❌ Gagal menyalin key!", false);
+    console.error('Gagal menyalin key:', err);
+  });
+}
+
+function showToast(message, isSuccess) {
+  let toast = document.createElement("div");
+  toast.textContent = message;
+  toast.className = "toast";
+  toast.style.background = isSuccess ? "#28a745" : "#dc3545"; // hijau atau merah
+  document.body.appendChild(toast);
+
+  // Trigger animasi
+  setTimeout(() => {
+    toast.classList.add("show");
+  }, 100);
+
+  // Hilangkan setelah 3 detik
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
