@@ -1,13 +1,7 @@
-{
-  "password": "Rull23",
-  "keyLength": 0,
-  "keyPrefix": "Rull",
-  "keySuffix": "Box"
-}
 
-{
- "password": "Rull34",
-  "keyLength": 0,
-  "keyPrefix": "Rull",
-  "keySuffix": "Box1"
-}
+  "{
+  "passwords": ["Rull", "Admin123", "UserX"],
+  "keyLength": 20,
+  "keyPrefix": "KEY-",
+  "keySuffix": "-XD"
+  }
