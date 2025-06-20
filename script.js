@@ -54,15 +54,13 @@ function showToast(message, isSuccess) {
   let toast = document.createElement("div");
   toast.textContent = message;
   toast.className = "toast";
-  toast.style.background = isSuccess ? "#28a745" : "#dc3545"; // hijau atau merah
+  toast.style.background = isSuccess ? "#28a745" : "#dc3545";
   document.body.appendChild(toast);
 
-  // Trigger animasi
   setTimeout(() => {
     toast.classList.add("show");
   }, 100);
 
-  // Hilangkan setelah 3 detik
   setTimeout(() => {
     toast.classList.remove("show");
     setTimeout(() => toast.remove(), 300);
