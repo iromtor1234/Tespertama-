@@ -1,4 +1,6 @@
 let config = [];
+let wrongAttempts = 0;
+let isBlocked = false;
 
 fetch('config.json')
   .then(response => response.json())
@@ -12,43 +14,63 @@ fetch('config.json')
 let entryCount = 0;
 
 document.getElementById("generateBtn").addEventListener("click", function () {
+  if (isBlocked) return;
+
   const inputPassword = document.getElementById("passwordInput").value;
   const keyBox = document.getElementById("keyBox");
   const errorBox = document.getElementById("errorBox");
   const spinner = document.getElementById("spinner");
+  const copyBtn = document.getElementById("copyBtn");
+
+  keyBox.classList.add("hidden");
+  errorBox.classList.add("hidden");
+  copyBtn.classList.add("hidden");
+  spinner.classList.remove("hidden");
 
   const matched = config.find(entry => entry.password === inputPassword);
 
-  if (matched) {
-    keyBox.classList.add("hidden");
-    errorBox.classList.add("hidden");
-    spinner.classList.remove("hidden");
-
-    setTimeout(() => {
-      spinner.classList.add("hidden");
+  setTimeout(() => {
+    spinner.classList.add("hidden");
+    if (matched) {
+      wrongAttempts = 0;
       entryCount++;
       const keyText = `${entryCount}. Password: ${inputPassword}\nGet key: ${matched.key}`;
       const existingText = keyBox.textContent ? keyBox.textContent + "\n" : "";
       keyBox.textContent = existingText + keyText;
       keyBox.classList.remove("hidden");
-
-      copyToClipboard(matched.key);
-    }, 5000);
-  } else {
-    keyBox.classList.add("hidden");
-    spinner.classList.add("hidden");
-    errorBox.classList.remove("hidden");
-  }
+      copyBtn.classList.remove("hidden");
+      copyBtn.dataset.key = matched.key;
+    } else {
+      wrongAttempts++;
+      errorBox.textContent = "Password salah!";
+      errorBox.classList.remove("hidden");
+      if (wrongAttempts >= 3) {
+        isBlocked = true;
+        errorBox.textContent = "Terlalu banyak percobaan salah! Tunggu 10 detik...";
+        document.getElementById("generateBtn").disabled = true;
+        document.getElementById("passwordInput").disabled = true;
+        setTimeout(() => {
+          isBlocked = false;
+          wrongAttempts = 0;
+          errorBox.classList.add("hidden");
+          document.getElementById("generateBtn").disabled = false;
+          document.getElementById("passwordInput").disabled = false;
+        }, 10000);
+      }
+    }
+  }, matched ? 5000 : 3000);
 });
 
-function copyToClipboard(text) {
-  navigator.clipboard.writeText(text).then(() => {
-    showToast("✅ Key berhasil disalin!", true);
-  }).catch(err => {
-    showToast("❌ Gagal menyalin key!", false);
-    console.error('Gagal menyalin key:', err);
-  });
-}
+document.getElementById("copyBtn").addEventListener("click", function () {
+  const key = this.dataset.key;
+  if (key) {
+    navigator.clipboard.writeText(key).then(() => {
+      showToast("✅ Key berhasil disalin!", true);
+    }).catch(() => {
+      showToast("❌ Gagal menyalin key!", false);
+    });
+  }
+});
 
 function showToast(message, isSuccess) {
   let toast = document.createElement("div");
