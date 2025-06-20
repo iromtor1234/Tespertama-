@@ -2,17 +2,20 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background: linear-gradient(135deg, #2980b9, #3498db, #6dd5fa);
-  background-size: 400% 400%;
-  animation: gradientMove 15s ease infinite;
+  background: radial-gradient(circle at 20% 20%, #00f0ff55, transparent 40%),
+              radial-gradient(circle at 80% 30%, #ff00f055, transparent 40%),
+              radial-gradient(circle at 50% 80%, #00ff7f55, transparent 40%);
+  background-color: #000;
+  background-size: 200% 200%;
+  animation: neonMove 10s ease-in-out infinite;
   font-family: sans-serif;
   color: #fff;
 }
 
-@keyframes gradientMove {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+@keyframes neonMove {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
 }
 
 .container {
@@ -23,7 +26,7 @@ body {
   padding: 20px;
   border-radius: 10px;
   backdrop-filter: blur(10px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  box-shadow: 0 0 20px #00f0ff88, 0 0 40px #ff00f088, 0 0 60px #00ff7f88;
 }
 
 input {
@@ -38,10 +41,16 @@ button {
   padding: 10px 20px;
   border: none;
   border-radius: 5px;
-  background: #fff;
-  color: #2980b9;
+  background: #00f0ff;
+  color: #000;
   font-weight: bold;
   cursor: pointer;
+  box-shadow: 0 0 10px #00f0ff, 0 0 20px #00f0ff;
+  transition: 0.3s;
+}
+
+button:hover {
+  box-shadow: 0 0 20px #00f0ff, 0 0 40px #00f0ff;
 }
 
 #keyBox {
