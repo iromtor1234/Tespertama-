@@ -1,6 +1,5 @@
-  {
-  "passwords": ["Rull", "Admin123", "UserX"],
-  "keyLength": 20,
-  "keyPrefix": "KEY-",
-  "keySuffix": "-XD"
-  }
+[
+  { "password": "Rull92", "key": "RullX92" },
+  { "password": "Rull57", "key": "RullXY83" },
+  { "password": "Admin123", "key": "AdminVIP99" }
+]
