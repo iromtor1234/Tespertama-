@@ -3,17 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RullBuyyer Key Generator</title>
+  <title>Buyyer Key Generator</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
-    <h1>Rull Key Generator</h1>
+    <h1>RullBuyyer Key Generator</h1>
     <p>Masukkan password untuk mendapatkan key</p>
-    <input type="password" id="passwordInput" placeholder="Masukkan password" />
+    <div style="position: relative; display: inline-block; width: 80%;">
+      <input type="password" id="passwordInput" placeholder="Masukkan password" style="width: 100%;" />
+      <button id="togglePwBtn" class="mini-btn">👁</button>
+    </div>
     <button id="generateBtn">Submit & Get Key</button>
     <div id="spinner" class="hidden"></div>
     <div id="keyBox" class="hidden"></div>
+    <button id="toggleKeyBtn" class="hidden mini-btn">👁 Key</button>
     <button id="copyBtn" class="hidden">Salin Key</button>
     <div id="errorBox" class="hidden">Password salah!</div>
   </div>
