@@ -1,6 +1,7 @@
 let config = [];
 let wrongAttempts = 0;
 let isBlocked = false;
+let keyVisible = true;
 
 fetch('config.json')
   .then(response => response.json())
@@ -21,10 +22,12 @@ document.getElementById("generateBtn").addEventListener("click", function () {
   const errorBox = document.getElementById("errorBox");
   const spinner = document.getElementById("spinner");
   const copyBtn = document.getElementById("copyBtn");
+  const toggleKeyBtn = document.getElementById("toggleKeyBtn");
 
   keyBox.classList.add("hidden");
   errorBox.classList.add("hidden");
   copyBtn.classList.add("hidden");
+  toggleKeyBtn.classList.add("hidden");
   spinner.classList.remove("hidden");
 
   const matched = config.find(entry => entry.password === inputPassword);
@@ -35,11 +38,14 @@ document.getElementById("generateBtn").addEventListener("click", function () {
       wrongAttempts = 0;
       entryCount++;
       const keyText = `${entryCount}. Password: ${inputPassword}\nGet key: ${matched.key}`;
-      const existingText = keyBox.textContent ? keyBox.textContent + "\n" : "";
-      keyBox.textContent = existingText + keyText;
+      const existingText = keyBox.dataset.fulltext ? keyBox.dataset.fulltext + "\n" : "";
+      keyBox.dataset.fulltext = existingText + keyText;
+      keyBox.textContent = keyBox.dataset.fulltext;
       keyBox.classList.remove("hidden");
       copyBtn.classList.remove("hidden");
+      toggleKeyBtn.classList.remove("hidden");
       copyBtn.dataset.key = matched.key;
+      keyVisible = true;
     } else {
       wrongAttempts++;
       errorBox.textContent = "Password salah!";
@@ -72,6 +78,32 @@ document.getElementById("copyBtn").addEventListener("click", function () {
   }
 });
 
+// Toggle password visibility
+document.getElementById("togglePwBtn").addEventListener("click", function () {
+  const pwInput = document.getElementById("passwordInput");
+  if (pwInput.type === "password") {
+    pwInput.type = "text";
+    this.textContent = "🙈";
+  } else {
+    pwInput.type = "password";
+    this.textContent = "👁";
+  }
+});
+
+// Toggle key visibility
+document.getElementById("toggleKeyBtn").addEventListener("click", function () {
+  const keyBox = document.getElementById("keyBox");
+  if (keyVisible) {
+    keyBox.textContent = keyBox.textContent.replace(/[^\n]/g, "•");
+    keyVisible = false;
+    this.textContent = "👁 Show";
+  } else {
+    keyBox.textContent = keyBox.dataset.fulltext;
+    keyVisible = true;
+    this.textContent = "🙈 Hide";
+  }
+});
+
 function showToast(message, isSuccess) {
   let toast = document.createElement("div");
   toast.textContent = message;
@@ -87,4 +119,4 @@ function showToast(message, isSuccess) {
     toast.classList.remove("show");
     setTimeout(() => toast.remove(), 300);
   }, 3000);
-}
+    }
