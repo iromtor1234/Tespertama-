@@ -97,3 +97,25 @@ button:hover {
   bottom: 20px;
   opacity: 1;
 }
+
+#errorBox {
+  color: #ff4c4c;
+  margin-top: 10px;
+}
+
+#copyBtn {
+  padding: 8px 16px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 5px;
+  background: #00f0ff;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 0 10px #00f0ff, 0 0 20px #00f0ff;
+  transition: 0.3s;
+}
+
+#copyBtn:hover {
+  box-shadow: 0 0 20px #00f0ff, 0 0 40px #00f0ff;
+}
