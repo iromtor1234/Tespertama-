@@ -1,5 +1,4 @@
-
-  "{
+  {
   "passwords": ["Rull", "Admin123", "UserX"],
   "keyLength": 20,
   "keyPrefix": "KEY-",
