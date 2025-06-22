@@ -10,7 +10,7 @@
     body {
       margin: 0;
       font-family: sans-serif;
-      background: url('https://images.unsplash.com/photo-1601758123927-1969528d3c34?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80') center/cover no-repeat fixed;
+      background: url('https://i.ibb.co/0Jmshvb/mountain-pixel.png') center/cover no-repeat fixed;
       color: #fff;
       display: flex;
       flex-direction: column;
@@ -32,7 +32,7 @@
       background: rgba(0,0,0,0.7);
       padding: 10px;
       border-radius: 6px;
-      max-height: 80%;
+      max-height: 90%;
       overflow-y: auto;
       display: none;
     }
@@ -73,6 +73,9 @@
   <button id="editKeyBtn">Edit Key</button>
   <input type="text" id="deletePwInput" placeholder="Password yg akan dihapus">
   <button id="deleteKeyBtn">Delete Key</button>
+  <input type="text" id="newPwInput" placeholder="Password baru">
+  <input type="text" id="newAddKeyInput" placeholder="Key baru">
+  <button id="addKeyBtn">Tambah Key</button>
   <button onclick="document.getElementById('adminPanel').style.display='none'">Tutup</button>
 </div>
 
@@ -171,6 +174,15 @@ document.getElementById("editKeyBtn").addEventListener("click", function(){
   });
 });
 
+document.getElementById("addKeyBtn").addEventListener("click", function(){
+  const newPw = document.getElementById("newPwInput").value.trim();
+  const newKey = document.getElementById("newAddKeyInput").value.trim();
+  if (!newPw || !newKey) return alert("Lengkapi field tambah key!");
+  db.ref("keys").push({ password: newPw, key: newKey });
+  alert("✅ Key baru ditambahkan!");
+  listKeys();
+});
+
 function showAdminPanel(){
   document.getElementById("adminPanel").style.display = "block";
   trackVisitor();
@@ -231,4 +243,4 @@ function listKeys(){
 </script>
 
 </body>
-  </html>
+</html>
