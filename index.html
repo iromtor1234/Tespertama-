@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Multi Password Get Key + Visitor Counter</title>
+  <title>Get Key + Visitor Counter</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <style>
@@ -63,15 +63,16 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Visitor counter
-    const visitorRef = db.ref("visitors/count");
-    visitorRef.transaction(count => (count || 0) + 1);
-    visitorRef.on("value", snapshot => {
-      document.getElementById("visitorCount").textContent = snapshot.val();
+    window.addEventListener("load", () => {
+      const visitorRef = db.ref("visitors/count");
+      visitorRef.transaction(count => (count || 0) + 1);
+      visitorRef.on("value", snapshot => {
+        document.getElementById("visitorCount").textContent = snapshot.val();
+      });
     });
 
     function checkPassword() {
-      const input = document.getElementById("passwordInput").value;
+      const input = document.getElementById("passwordInput").value.trim();
       const passRef = db.ref("passwords/" + input);
 
       passRef.once("value").then(snapshot => {
