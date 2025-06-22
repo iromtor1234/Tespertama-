@@ -3,76 +3,43 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Visitor Counter Rull</title>
-  <style>
-    body {
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      color: #00ffcc;
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      flex-direction: column;
-    }
-    .counter-box {
-      background: rgba(0, 0, 0, 0.5);
-      padding: 20px 40px;
-      border-radius: 10px;
-      box-shadow: 0 0 20px #00ffcc;
-      text-align: center;
-    }
-    button {
-      margin-top: 10px;
-      padding: 10px 20px;
-      background: #00ffcc;
-      border: none;
-      color: #000;
-      font-weight: bold;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-    button:hover {
-      background: #00bfa5;
-    }
-  </style>
+  <title>Visitor Counter - RullWeb</title>
 </head>
-<body>
-  <div class="counter-box">
-    <h1>Jumlah Kunjungan</h1>
-    <p><span id="visitorCount">0</span></p>
-    <button onclick="salin()">Salin Jumlah</button>
-  </div>
+<body style="font-family:sans-serif; text-align:center; padding:50px;">
+
+  <h1>Selamat Datang di RullWeb!</h1>
+  <p>Jumlah kunjungan: <span id="visitorCount">0</span></p>
 
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script>
+    // Ganti config ini dengan data asli dari Firebase kamu (sementara placeholder)
     const firebaseConfig = {
-      apiKey: "API_KEY_KAMU",
-      authDomain: "PROJECT_ID.firebaseapp.com",
-      databaseURL: "https://PROJECT_ID-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "PROJECT_ID",
-      storageBucket: "PROJECT_ID.appspot.com",
-      messagingSenderId: "SENDER_ID",
-      appId: "APP_ID"
+      apiKey: "ISI_API_KEY_KAMU",
+      authDomain: "rullweb.firebaseapp.com",
+      databaseURL: "https://rullweb-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "rullweb",
+      storageBucket: "rullweb.appspot.com",
+      messagingSenderId: "ISI_SENDER_ID_KAMU",
+      appId: "ISI_APP_ID_KAMU"
     };
 
+    // Inisialisasi Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // Referensi ke visitor count
     const visitorRef = db.ref("visitors/count");
-    visitorRef.transaction(current => (current || 0) + 1);
+
+    // Tambahkan 1 setiap halaman dibuka
+    visitorRef.transaction(current => {
+      return (current || 0) + 1;
+    });
+
+    // Update realtime tampilan visitor
     visitorRef.on("value", snapshot => {
       document.getElementById("visitorCount").textContent = snapshot.val();
     });
-
-    function salin() {
-      const text = document.getElementById("visitorCount").textContent;
-      navigator.clipboard.writeText(text).then(() => {
-        alert("Jumlah kunjungan disalin: " + text);
-      });
-    }
   </script>
 </body>
 </html>
