@@ -11,7 +11,21 @@
       overflow: hidden;
       font-family: sans-serif;
       color: #fff;
-      background: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?crop=entropy&cs=tinysrgb&fit=crop&w=1600&q=80') no-repeat center center / cover;
+      background: black;
+    }
+
+    #bg {
+      position: fixed;
+      width: 200%;
+      height: 100%;
+      background: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?crop=entropy&cs=tinysrgb&fit=crop&w=1600&q=80') repeat-x bottom center / cover;
+      animation: bgMove 60s linear infinite;
+      z-index: -2;
+    }
+
+    @keyframes bgMove {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
     }
 
     #adminBtn {
@@ -70,21 +84,25 @@
       width: 2px;
       height: 2px;
       background: white;
-      box-shadow: 0 0 5px white;
-      animation: fall 1s linear;
+      box-shadow: 0 0 8px white;
+      opacity: 0.8;
+      animation: fall 1.5s linear;
     }
 
     @keyframes fall {
-      0% { opacity:1; transform: translateY(0) translateX(0); }
-      100% { opacity:0; transform: translateY(100vh) translateX(50vw); }
+      from { transform: translateY(0) translateX(0); opacity:1; }
+      to { transform: translateY(100vh) translateX(50vw); opacity:0; }
     }
   </style>
 </head>
 <body>
+  <div id="bg"></div>
+
   <button id="adminBtn">Admin Access</button>
 
   <div class="container">
-    <input type="password" id="passwordInput" placeholder="Masukkan Password" /><br>
+    <input type="password" id="passwordInput" placeholder="Masukkan Password" />
+    <button id="togglePwBtn">👁</button><br>
     <button id="generateBtn">Get Key</button>
     <button id="buyKeyBtn">Buy Key</button>
     <div id="spinner" style="display:none;">⏳ Loading...</div>
@@ -167,6 +185,17 @@
       }
     });
 
+    document.getElementById("togglePwBtn").addEventListener("click", function(){
+      const pwInput = document.getElementById("passwordInput");
+      if (pwInput.type === "password") {
+        pwInput.type = "text";
+        this.textContent = "🙈";
+      } else {
+        pwInput.type = "password";
+        this.textContent = "👁";
+      }
+    });
+
     function showToast(msg, success){
       const t = document.createElement("div");
       t.textContent = msg;
@@ -180,14 +209,14 @@
       }, 3000);
     }
 
-    // Bintang jatuh setiap 3 detik
+    // Bintang jatuh realistis
     setInterval(() => {
       const star = document.createElement("div");
       star.className = "star";
-      star.style.top = Math.random() * window.innerHeight + "px";
+      star.style.top = Math.random() * window.innerHeight * 0.5 + "px";
       star.style.left = Math.random() * window.innerWidth + "px";
       document.body.appendChild(star);
-      setTimeout(() => star.remove(), 1000);
+      setTimeout(() => star.remove(), 1500);
     }, 3000);
   </script>
 </body>
