@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Neon RGB Background</title>
+  <title>Key Generator + Admin Access</title>
   <style>
     html, body {
       margin: 0;
@@ -11,7 +11,6 @@
       overflow: hidden;
       font-family: sans-serif;
     }
-
     .neon-bg {
       position: fixed;
       top: 0; left: 0;
@@ -21,27 +20,253 @@
       animation: neonMove 20s linear infinite;
       z-index: -1;
     }
-
     @keyframes neonMove {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-
     #content {
       position: relative;
       z-index: 1;
       text-align: center;
-      padding-top: 20%;
+      margin-top: 15%;
       color: white;
+    }
+    input, button {
+      padding: 10px;
+      margin: 5px;
+      font-size: 16px;
+    }
+    .corner-btn {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 2;
+      padding: 8px 12px;
+    }
+    #adminModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      color: white;
+      padding: 20px;
+      z-index: 10;
+      overflow: auto;
+    }
+    #adminContent {
+      max-width: 500px;
+      margin: auto;
+      background: rgba(0,0,0,0.5);
+      padding: 20px;
+      border-radius: 8px;
+    }
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 10px 15px;
+      border-radius: 5px;
+      color: #fff;
+      opacity: 0;
+      transition: all 0.3s ease;
+      transform: translateY(20px);
     }
   </style>
 </head>
 <body>
   <div class="neon-bg"></div>
+
+  <button id="adminBtn" class="corner-btn">Access Admin</button>
+
   <div id="content">
-    <h1>Halo! Ini background neon RGB 🎨</h1>
-    <p>Coba buka di browser dan lihat animasinya!</p>
+    <h1>Key Generator</h1>
+    <input type="password" id="passwordInput" placeholder="Masukkan password">
+    <button id="togglePwBtn">👁</button>
+    <button id="generateBtn">Get Key</button>
+    <button id="buyKeyBtn">BUY KEY</button>
+    <div id="spinner" style="display:none;">⏳ Loading...</div>
+    <div id="keyBox" style="display:none;"></div>
+    <div id="errorBox" style="display:none; color:red;"></div>
+    <button id="copyBtn" style="display:none;">Salin Key</button>
+    <button id="toggleKeyBtn" style="display:none;">🙈 Hide</button>
   </div>
+
+  <div id="adminModal">
+    <div id="adminContent">
+      <h2>Admin Access</h2>
+      <div id="adminLogin">
+        <input type="password" id="adminPw" placeholder="Admin Password">
+        <button onclick="checkAdmin()">Login</button>
+      </div>
+      <div id="adminPanel" style="display:none;">
+        <h3>Tambah/Ubah Password & Key</h3>
+        <input id="newPw" placeholder="Password baru">
+        <input id="newKey" placeholder="Key baru">
+        <button onclick="addKey()">Simpan</button>
+        <h3>Tracking Info</h3>
+        <pre id="trackingInfo">Loading...</pre>
+        <button onclick="closeAdmin()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let config = [
+      { password: "Rull123", key: "KEY-RULL-123" }
+    ];
+    let wrongAttempts = 0, isBlocked = false, keyVisible = true, entryCount = 0;
+    let trackingData = "Loading...";
+
+    // Tracking
+    fetch("https://ipapi.co/json/")
+      .then(r => r.json())
+      .then(data => {
+        const pulau = mapPulau(data.region_code, data.country_name);
+        trackingData = 
+\`IP: \${data.ip}
+Negara: \${data.country_name}
+Pulau: \${pulau}
+Device: \${navigator.userAgent}\`;
+      });
+
+    document.getElementById("generateBtn").addEventListener("click", function(){
+      if(isBlocked) return;
+      const pw = document.getElementById("passwordInput").value.trim();
+      const keyBox = document.getElementById("keyBox");
+      const errBox = document.getElementById("errorBox");
+      const spinner = document.getElementById("spinner");
+      const copyBtn = document.getElementById("copyBtn");
+      const toggleKeyBtn = document.getElementById("toggleKeyBtn");
+
+      keyBox.style.display = "none";
+      errBox.style.display = "none";
+      copyBtn.style.display = "none";
+      toggleKeyBtn.style.display = "none";
+      spinner.style.display = "inline";
+
+      const match = config.find(c => c.password === pw);
+      setTimeout(() => {
+        spinner.style.display = "none";
+        if(match){
+          wrongAttempts = 0; entryCount++;
+          keyBox.textContent = \`\${entryCount}. Password: \${pw}\\nGet Key: \${match.key}\`;
+          keyBox.style.display = "block";
+          copyBtn.style.display = "inline";
+          toggleKeyBtn.style.display = "inline";
+          copyBtn.dataset.key = match.key;
+          keyVisible = true;
+          toggleKeyBtn.textContent = "🙈 Hide";
+          showToast("✅ Key ditemukan!", true);
+        } else {
+          wrongAttempts++;
+          errBox.textContent = "❌ Password salah!";
+          errBox.style.display = "block";
+          showToast("❌ Password salah!", false);
+          if(wrongAttempts >= 3){
+            isBlocked = true;
+            errBox.textContent = "⚠️ Salah 3x! Tunggu 10 detik...";
+            this.disabled = true;
+            document.getElementById("passwordInput").disabled = true;
+            setTimeout(() => {
+              isBlocked = false; wrongAttempts = 0;
+              errBox.style.display = "none";
+              this.disabled = false;
+              document.getElementById("passwordInput").disabled = false;
+            }, 10000);
+          }
+        }
+      }, match ? 5000 : 3000);
+    });
+
+    document.getElementById("togglePwBtn").addEventListener("click", function(){
+      const p = document.getElementById("passwordInput");
+      if(p.type === "password"){ p.type = "text"; this.textContent = "🙈"; }
+      else { p.type = "password"; this.textContent = "👁"; }
+    });
+
+    document.getElementById("toggleKeyBtn").addEventListener("click", function(){
+      const keyBox = document.getElementById("keyBox");
+      if(keyVisible){
+        keyBox.textContent = keyBox.textContent.replace(/[^\n]/g,"•");
+        keyVisible = false;
+        this.textContent = "👁 Show";
+      } else {
+        location.reload();
+      }
+    });
+
+    document.getElementById("copyBtn").addEventListener("click", function(){
+      navigator.clipboard.writeText(this.dataset.key).then(() => {
+        showToast("✅ Key disalin!", true);
+      }).catch(() => {
+        showToast("❌ Gagal salin!", false);
+      });
+    });
+
+    document.getElementById("buyKeyBtn").addEventListener("click", function(){
+      window.open("https://t.me/ARullReal", "_blank");
+    });
+
+    document.getElementById("adminBtn").addEventListener("click", function(){
+      document.getElementById("adminModal").style.display = "block";
+    });
+
+    function checkAdmin(){
+      const pw = document.getElementById("adminPw").value;
+      if(pw === "RullAdmin"){
+        document.getElementById("adminLogin").style.display = "none";
+        document.getElementById("adminPanel").style.display = "block";
+        document.getElementById("trackingInfo").textContent = trackingData;
+      } else {
+        alert("Password admin salah");
+      }
+    }
+
+    function addKey(){
+      const npw = document.getElementById("newPw").value.trim();
+      const nkey = document.getElementById("newKey").value.trim();
+      if(npw && nkey){
+        const exist = config.find(c => c.password === npw);
+        if(exist) exist.key = nkey;
+        else config.push({ password: npw, key: nkey });
+        alert("Berhasil disimpan!");
+      } else {
+        alert("Isi semua field!");
+      }
+    }
+
+    function closeAdmin(){
+      document.getElementById("adminModal").style.display = "none";
+      document.getElementById("adminLogin").style.display = "block";
+      document.getElementById("adminPanel").style.display = "none";
+      document.getElementById("adminPw").value = "";
+    }
+
+    function mapPulau(region, country){
+      if(country !== "Indonesia") return "-";
+      if(["JK","BT","JB","BE","BA","YO","KI"].includes(region)) return "Jawa";
+      if(["KR","SS","ST","SG"].includes(region)) return "Sulawesi";
+      if(["RI","PB","PA"].includes(region)) return "Papua";
+      if(["LA","SB","AC","SU"].includes(region)) return "Sumatera";
+      if(["KS","KT","KI"].includes(region)) return "Kalimantan";
+      return "-";
+    }
+
+    function showToast(msg, success){
+      const t = document.createElement("div");
+      t.textContent = msg;
+      t.className = "toast";
+      t.style.background = success ? "#28a745" : "#dc3545";
+      document.body.appendChild(t);
+      setTimeout(() => { t.style.opacity = "1"; t.style.transform = "translateY(0)"; }, 50);
+      setTimeout(() => {
+        t.style.opacity = "0";
+        t.style.transform = "translateY(20px)";
+        setTimeout(() => t.remove(), 300);
+      }, 3000);
+    }
+  </script>
 </body>
 </html>
