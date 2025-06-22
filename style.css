@@ -1,39 +1,17 @@
-body, html {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  overflow: hidden;
-  font-family: sans-serif;
-}
-
-.neon-bg {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: linear-gradient(270deg, red, orange, yellow, green, cyan, blue, violet, red);
-  background-size: 400% 400%;
-  animation: neonMove 20s linear infinite;
-  z-index: -1;
-}
-
-@keyframes neonMove {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
 #content {
   position: relative;
   z-index: 1;
   text-align: center;
-  margin-top: 15%;
+  padding-top: 40%;
   color: white;
 }
 
 input, button {
   padding: 10px;
   margin: 5px;
-  font-size: 16px;
+  font-size: 14px;
+  width: 80%;
+  max-width: 300px;
 }
 
 .corner-btn {
@@ -41,10 +19,11 @@ input, button {
   top: 10px;
   right: 10px;
   z-index: 2;
-  padding: 8px 12px;
+  padding: 5px 10px;
+  font-size: 12px;
 }
 
-#whoSeeModal {
+#adminModal {
   display: none;
   position: fixed;
   top: 0; left: 0;
@@ -53,25 +32,27 @@ input, button {
   color: white;
   padding: 20px;
   z-index: 10;
-  overflow: auto;
+  overflow-y: auto;
 }
 
-#whoSeeContent {
-  max-width: 500px;
+#adminContent {
+  max-width: 90%;
   margin: auto;
   background: rgba(0,0,0,0.5);
-  padding: 20px;
+  padding: 15px;
   border-radius: 8px;
 }
 
 .toast {
   position: fixed;
   bottom: 20px;
-  right: 20px;
-  padding: 10px 15px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #28a745;
+  padding: 8px 12px;
   border-radius: 5px;
-  color: #fff;
   opacity: 0;
+  color: white;
   transition: all 0.3s ease;
-  transform: translateY(20px);
-  }
+  font-size: 12px;
+}
