@@ -6,6 +6,7 @@ let adminPassword = "RullAdmin";
 let wrongAttempts = 0, isBlocked = false, keyVisible = true, entryCount = 0;
 let deviceInfo = navigator.userAgent;
 let userLocation = { lat:null, lon:null, ip:null, city:null, country:null };
+
 fetch("https://ipapi.co/json/").then(r=>r.json()).then(d=>{
   userLocation={lat:d.latitude, lon:d.longitude, ip:d.ip, city:d.city, country:d.country_name};
 });
@@ -83,11 +84,9 @@ document.getElementById("toggleKeyBtn").addEventListener("click", function(){
 });
 
 document.getElementById("buyKeyBtn").addEventListener("click",()=>{
-  document.getElementById("buySection").scrollIntoView({behavior:"smooth"});
+  window.open("https://t.me/ARullReal", "_blank");
 });
-document.getElementById("telegramBtn").addEventListener("click",()=>{
-  window.open("https://t.me/ARullReal","_blank");
-});
+
 document.getElementById("adminBtn").addEventListener("click",()=>{
   document.getElementById("adminModal").style.display="block";
 });
@@ -134,4 +133,4 @@ function showToast(msg,s){
     t.style.opacity="0";t.style.transform="translateY(20px)";
     setTimeout(()=>t.remove(),300);
   },3000);
-                                                        }
+}
