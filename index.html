@@ -8,6 +8,8 @@
 <body>
   <div class="neon-bg"></div>
 
+  <button id="adminBtn" class="admin-btn">Admin Access</button>
+
   <div id="content">
     <h1>Key Generator</h1>
     <input type="password" id="passwordInput" placeholder="Masukkan password">
@@ -19,26 +21,25 @@
     <div id="errorBox" style="display:none;color:red;"></div>
     <button id="copyBtn" style="display:none;">Salin Key</button>
     <button id="toggleKeyBtn" style="display:none;">🙈 Hide</button>
-    <button id="adminBtn">Admin Access</button>
 
     <div id="buySection" style="margin-top:1000px;">
       <button id="telegramBtn">Click Me (Telegram @ARullReal)</button>
     </div>
+  </div>
 
-    <div id="adminModal">
-      <div id="adminPanel">
-        <h2>Admin Panel</h2>
-        <input type="password" id="adminPassInput" placeholder="Admin password">
-        <button id="checkAdminPass">Login Admin</button>
-        <div id="adminContent">
-          <h3>Tambah/Ubah Key</h3>
-          <input id="newPw" placeholder="Password baru">
-          <input id="newKey" placeholder="Key baru">
-          <button id="addKeyBtn">Tambah/Ubah</button>
-          <h3>Tracking Data</h3>
-          <pre id="trackingData"></pre>
-          <button onclick="closeAdmin()">Tutup</button>
-        </div>
+  <div id="adminModal">
+    <div id="adminPanel">
+      <h2>Admin Panel</h2>
+      <input type="password" id="adminPassInput" placeholder="Admin password">
+      <button id="checkAdminPass">Login Admin</button>
+      <div id="adminContent">
+        <h3>Tambah/Ubah Key</h3>
+        <input id="newPw" placeholder="Password baru">
+        <input id="newKey" placeholder="Key baru">
+        <button id="addKeyBtn">Tambah/Ubah</button>
+        <h3>Tracking Data</h3>
+        <pre id="trackingData"></pre>
+        <button onclick="closeAdmin()">Tutup</button>
       </div>
     </div>
   </div>
