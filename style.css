@@ -1,139 +1,54 @@
-body {
+body, html {
   margin: 0;
   padding: 0;
-  min-height: 100vh;
-  background: radial-gradient(circle at 20% 20%, #00f0ff55, transparent 40%),
-              radial-gradient(circle at 80% 30%, #ff00f055, transparent 40%),
-              radial-gradient(circle at 50% 80%, #00ff7f55, transparent 40%);
-  background-color: #000;
-  background-size: 200% 200%;
-  animation: neonMove 10s ease-in-out infinite;
+  overflow: hidden;
   font-family: sans-serif;
+}
+canvas {
+  position: fixed;
+  top: 0; left: 0;
+  z-index: -1;
+}
+#content {
+  position: relative;
+  z-index: 1;
+  padding: 20px;
   color: #fff;
 }
-
-@keyframes neonMove {
-  0% { background-position: 0% 0%; }
-  50% { background-position: 100% 100%; }
-  100% { background-position: 0% 0%; }
-}
-
-.container {
-  max-width: 400px;
-  margin: 100px auto;
-  text-align: center;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 20px;
-  border-radius: 10px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 0 20px #00f0ff88, 0 0 40px #ff00f088, 0 0 60px #00ff7f88;
-}
-
-input {
+input, button {
+  margin: 5px;
   padding: 10px;
-  width: 80%;
-  margin-bottom: 10px;
-  border: none;
-  border-radius: 5px;
+  font-size: 16px;
 }
-
-button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  background: #00f0ff;
-  color: #000;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 0 10px #00f0ff, 0 0 20px #00f0ff;
-  transition: 0.3s;
-}
-
-button:hover {
-  box-shadow: 0 0 20px #00f0ff, 0 0 40px #00f0ff;
-}
-
-#keyBox {
-  margin-top: 20px;
-  white-space: pre-line;
-}
-
-.hidden {
+#spinner {
   display: none;
 }
-
-/* Spinner */
-#spinner {
-  border: 6px solid #f3f3f3;
-  border-top: 6px solid #fff;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  margin: 20px auto;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Toast */
 .toast {
   position: fixed;
-  bottom: -50px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #fff;
-  padding: 10px 20px;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px 15px;
   border-radius: 5px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.3);
-  z-index: 9999;
+  color: #fff;
   opacity: 0;
   transition: all 0.3s ease;
+  transform: translateY(20px);
 }
-
-.toast.show {
-  bottom: 20px;
-  opacity: 1;
-}
-
-#errorBox {
-  color: #ff4c4c;
-  margin-top: 10px;
-}
-
-#copyBtn {
-  padding: 8px 16px;
-  margin-top: 10px;
-  border: none;
-  border-radius: 5px;
-  background: #00f0ff;
-  color: #000;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 0 10px #00f0ff, 0 0 20px #00f0ff;
-  transition: 0.3s;
-}
-
-#copyBtn:hover {
-  box-shadow: 0 0 20px #00f0ff, 0 0 40px #00f0ff;
-}
-
-.mini-btn {
-  position: absolute;
-  right: 5px;
-  top: 50%;
-  transform: translateY(-50%);
-  padding: 5px;
-  border: none;
-  border-radius: 3px;
-  background: rgba(255,255,255,0.3);
+#adminModal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.9);
   color: #fff;
-  cursor: pointer;
-  font-size: 14px;
+  padding: 20px;
+  z-index: 10;
+  overflow: auto;
 }
-
-#toggleKeyBtn {
-  margin-top: 10px;
+#adminContent {
+  display: none;
+}
+#adminPanel {
+  max-width: 400px;
+  margin: auto;
 }
