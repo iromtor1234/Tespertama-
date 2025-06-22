@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Get Key + Visitor Counter</title>
+  <title>Get Key + Visitor Counter Aman</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <style>
@@ -65,9 +65,12 @@
 
     window.addEventListener("load", () => {
       const visitorRef = db.ref("visitors/count");
-      visitorRef.transaction(count => (count || 0) + 1);
-      visitorRef.on("value", snapshot => {
-        document.getElementById("visitorCount").textContent = snapshot.val();
+      // Ambil value sekali, lalu update
+      visitorRef.once("value").then(snapshot => {
+        let count = snapshot.val() || 0;
+        count += 1;
+        visitorRef.set(count);
+        document.getElementById("visitorCount").textContent = count;
       });
     });
 
