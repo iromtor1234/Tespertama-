@@ -1,37 +1,3 @@
-// BACKGROUND
-const canvas = document.getElementById("bgCanvas");
-const ctx = canvas.getContext("2d");
-let w = window.innerWidth, h = window.innerHeight;
-canvas.width = w; canvas.height = h;
-
-let cube = { x: w/2, y: h/2, size: 50, angle: 0 };
-
-function drawBackground() {
-  ctx.fillStyle = "#001f3f";
-  ctx.fillRect(0, 0, w, h);
-
-  ctx.save();
-  ctx.translate(cube.x, cube.y);
-  ctx.rotate(cube.angle);
-  ctx.fillStyle = "rgba(0,123,255,0.7)";
-  ctx.fillRect(-cube.size/2, -cube.size/2, cube.size, cube.size);
-  ctx.strokeStyle = "rgba(255,0,0,0.7)";
-  ctx.lineWidth = 5;
-  ctx.strokeRect(-cube.size/2, -cube.size/2, cube.size, cube.size);
-  ctx.restore();
-
-  cube.angle += 0.01;
-  requestAnimationFrame(drawBackground);
-}
-drawBackground();
-
-window.addEventListener("resize", () => {
-  w = window.innerWidth; h = window.innerHeight;
-  canvas.width = w; canvas.height = h;
-  cube.x = w/2; cube.y = h/2;
-});
-
-// LOGIC
 let config = [
   { password: "Rull123", key: "KeyABC" },
   { password: "Rull456", key: "KeyDEF" }
@@ -168,4 +134,4 @@ function showToast(msg,s){
     t.style.opacity="0";t.style.transform="translateY(20px)";
     setTimeout(()=>t.remove(),300);
   },3000);
-        }
+}
