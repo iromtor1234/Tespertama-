@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Key Generator Neon Malam</title>
+  <title>Key Generator Game 2D</title>
   <style>
     html, body {
       margin: 0; padding: 0;
@@ -11,24 +11,23 @@
       overflow: hidden;
       font-family: sans-serif;
       color: #fff;
-      background: blue;
+      background: black;
     }
 
     body::before {
       content: '';
       position: fixed;
       top: 0; left: 0;
-      width: 200%;
+      width: 300%;
       height: 100%;
-      background: linear-gradient(90deg, #001133, #002244, #001133);
-      background-size: 200% 100%;
-      animation: bgMove 30s linear infinite;
-      z-index: -2;
+      background: url('https://opengameart.org/sites/default/files/background_45.png') repeat-x bottom center / cover;
+      animation: gameScroll 20s linear infinite;
+      z-index: -1;
     }
 
-    @keyframes bgMove {
-      0% { background-position: 0 0; }
-      100% { background-position: 100% 0; }
+    @keyframes gameScroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-66.66%); }
     }
 
     #adminBtn {
@@ -80,21 +79,6 @@
       color: white;
       font-size: 12px;
       transition: opacity 0.3s ease;
-    }
-
-    .star {
-      position: fixed;
-      width: 2px;
-      height: 2px;
-      background: white;
-      box-shadow: 0 0 10px white;
-      opacity: 0.8;
-      animation: fall 2s linear;
-    }
-
-    @keyframes fall {
-      from { transform: translateY(0) translateX(0); opacity:1; }
-      to { transform: translateY(100vh) translateX(50vw); opacity:0; }
     }
   </style>
 </head>
@@ -210,16 +194,6 @@
         setTimeout(() => t.remove(), 300);
       }, 3000);
     }
-
-    // Bintang jatuh realistis
-    setInterval(() => {
-      const star = document.createElement("div");
-      star.className = "star";
-      star.style.top = Math.random() * window.innerHeight * 0.5 + "px";
-      star.style.left = Math.random() * window.innerWidth + "px";
-      document.body.appendChild(star);
-      setTimeout(() => star.remove(), 2000);
-    }, 2000);
   </script>
 </body>
 </html>
