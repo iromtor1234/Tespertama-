@@ -8,50 +8,42 @@
     html, body {
       margin: 0; padding: 0; height: 100%;
       font-family: sans-serif;
-      background: linear-gradient(135deg, #000428, #004e92);
-      background-size: 400% 400%;
-      animation: bgMove 10s ease infinite;
-      color: white; overflow-x: hidden;
+      background: url('https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?fit=crop&w=1200&q=80') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
-    @keyframes bgMove {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+    #container {
+      background: rgba(0,0,0,0.6);
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%; max-width: 300px;
+      color: #fff;
+      text-align: center;
     }
-    #toggleMenuBtn, #accessAdminBtn {
-      position: fixed; left: 10px; z-index: 10;
-      padding: 6px 12px; border: none; border-radius: 6px;
-      background: rgba(255,255,255,0.2);
-      color: #fff; cursor: pointer;
-    }
-    #toggleMenuBtn { top: 10px; }
-    #accessAdminBtn { top: 50px; }
-    #slideMenu {
-      position: fixed; top: 0; right: -260px;
-      width: 250px; height: 100%;
-      background: rgba(0,0,0,0.8);
-      padding: 10px; transition: right 0.3s;
-    }
-    #slideMenu.open { right: 0; }
     input, button {
-      width: 100%; padding: 8px; margin: 5px 0;
-      border: none; border-radius: 4px;
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0;
+      border: none;
+      border-radius: 5px;
     }
-    #keyBox, #errorBox { display: none; padding: 6px; border-radius: 4px; }
-    #keyBox { background: rgba(0,255,0,0.3); }
-    #errorBox { background: rgba(255,0,0,0.3); }
+    #keyBox, #errorBox {
+      display: none;
+      margin: 5px 0;
+      padding: 5px;
+      border-radius: 4px;
+    }
+    #keyBox { background: rgba(0, 128, 0, 0.5); }
+    #errorBox { background: rgba(255, 0, 0, 0.5); }
     #copyBtn { display: none; }
-    #adminPanel { display: none; padding: 10px; background: rgba(0,0,0,0.6); }
-    .key-item { border-bottom: 1px solid #555; padding: 4px; }
-    .key-item button { width: auto; padding: 2px 5px; font-size: 0.8em; }
   </style>
 </head>
 <body>
-  <button id="toggleMenuBtn">🏠 Click me to open menu</button>
-  <button id="accessAdminBtn">⚙️ Access Admin</button>
-
-  <div id="slideMenu">
-    <input type="password" id="passwordInput" placeholder="Masukkan Password">
+  <div id="container">
+    <h3>Masukkan Password</h3>
+    <input type="password" id="passwordInput" placeholder="Password">
     <button id="togglePwBtn">👁</button>
     <button id="generateBtn">Get Key</button>
     <button id="buyKeyBtn">Buy Key</button>
@@ -59,9 +51,9 @@
     <div id="keyBox"></div>
     <div id="errorBox"></div>
     <button id="copyBtn">Salin Key</button>
+    <button id="accessAdminBtn">⚙️ Access Admin</button>
+    <div id="adminPanel"></div>
   </div>
-
-  <div id="adminPanel"></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
@@ -97,10 +89,6 @@
 
     let wrongAttempts = 0, isBlocked = false;
 
-    document.getElementById("toggleMenuBtn").onclick = () => {
-      document.getElementById("slideMenu").classList.toggle("open");
-    };
-
     document.getElementById("togglePwBtn").onclick = () => {
       const pwInput = document.getElementById("passwordInput");
       pwInput.type = pwInput.type === "password" ? "text" : "password";
@@ -120,6 +108,7 @@
             document.getElementById("keyBox").textContent = `Password: ${pw}\nKey: ${foundEntry[1].key}`;
             document.getElementById("keyBox").style.display = "block";
             document.getElementById("copyBtn").style.display = "block";
+            document.getElementById("errorBox").style.display = "none";
             wrongAttempts = 0;
           } else {
             wrongAttempts++;
@@ -155,10 +144,9 @@
         const keysSnap = await get(ref(db, 'keys'));
         const keys = keysSnap.val() || {};
         const adminPanel = document.getElementById("adminPanel");
-        adminPanel.innerHTML = "<h3>Admin Key List</h3>";
+        adminPanel.innerHTML = "<h4>Admin Key List</h4>";
         Object.entries(keys).forEach(([id, v]) => {
           const div = document.createElement("div");
-          div.className = "key-item";
           div.innerHTML = `
             ${v.password} → ${v.key}
             <button onclick="editKey('${id}')">Edit</button>
