@@ -63,15 +63,31 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    window.addEventListener("load", () => {
+    // Fungsi naikkan kunjungan hanya sekali
+    function increaseVisitor() {
       const visitorRef = db.ref("visitors/count");
-      // Ambil value sekali, lalu update
-      visitorRef.once("value").then(snapshot => {
+      visitorRef.get().then(snapshot => {
         let count = snapshot.val() || 0;
-        count += 1;
-        visitorRef.set(count);
-        document.getElementById("visitorCount").textContent = count;
+        count++;
+        visitorRef.set(count).then(() => {
+          document.getElementById("visitorCount").textContent = count;
+        });
       });
+    }
+
+    // Tampilkan kunjungan terakhir (tanpa naikin)
+    function showVisitor() {
+      db.ref("visitors/count").get().then(snapshot => {
+        document.getElementById("visitorCount").textContent = snapshot.val() || 0;
+      });
+    }
+
+    window.addEventListener("load", () => {
+      showVisitor();
+      // Delay sedikit biar pasti 1x
+      setTimeout(() => {
+        increaseVisitor();
+      }, 300);
     });
 
     function checkPassword() {
