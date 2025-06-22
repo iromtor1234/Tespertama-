@@ -1,153 +1,202 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Neon Key Access</title>
-<style>
-  html, body {
-    margin: 0; padding: 0;
-    height: 100%; overflow: hidden;
-    font-family: sans-serif;
-    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-    background-size: 400% 400%;
-    animation: gradientBG 10s ease infinite;
-  }
-
-  @keyframes gradientBG {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-
-  #toggleMenuBtn {
-    position: fixed; top: 10px; left: 10px;
-    z-index: 10;
-    display: flex; align-items: center;
-    background: rgba(255,255,255,0.2);
-    padding: 5px 10px;
-    border: none; border-radius: 6px;
-    color: #fff; cursor: pointer;
-  }
-
-  #toggleMenuBtn img {
-    width: 20px; height: 20px; margin-right: 5px;
-  }
-
-  #slideMenu {
-    position: fixed;
-    top: 0; right: -260px;
-    width: 250px; height: 100%;
-    background: rgba(0,0,0,0.8);
-    padding: 10px;
-    border-radius: 8px 0 0 8px;
-    transition: right 0.3s;
-    z-index: 9;
-    display: flex; flex-direction: column;
-    justify-content: center;
-  }
-
-  #slideMenu.open { right: 0; }
-
-  input, button {
-    width: 100%; padding: 8px;
-    margin: 5px 0; border: none;
-    border-radius: 4px; font-size: 1em;
-  }
-
-  #keyBox, #errorBox {
-    padding: 5px; margin: 5px 0;
-    border-radius: 4px;
-  }
-
-  #keyBox { background: rgba(0, 255, 0, 0.3); color: #fff; }
-  #errorBox { background: rgba(255, 0, 0, 0.3); color: #fff; }
-  #copyBtn { display: none; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rull Web Access</title>
+  <style>
+    html, body {
+      margin: 0; padding: 0; height: 100%;
+      font-family: sans-serif;
+      background: linear-gradient(135deg, #000428, #004e92);
+      background-size: 400% 400%;
+      animation: bgMove 10s ease infinite;
+      color: white; overflow-x: hidden;
+    }
+    @keyframes bgMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    #toggleMenuBtn, #accessAdminBtn {
+      position: fixed; left: 10px; z-index: 10;
+      padding: 6px 12px; border: none; border-radius: 6px;
+      background: rgba(255,255,255,0.2);
+      color: #fff; cursor: pointer;
+    }
+    #toggleMenuBtn { top: 10px; }
+    #accessAdminBtn { top: 50px; }
+    #slideMenu {
+      position: fixed; top: 0; right: -260px;
+      width: 250px; height: 100%;
+      background: rgba(0,0,0,0.8);
+      padding: 10px; transition: right 0.3s;
+    }
+    #slideMenu.open { right: 0; }
+    input, button {
+      width: 100%; padding: 8px; margin: 5px 0;
+      border: none; border-radius: 4px;
+    }
+    #keyBox, #errorBox { display: none; padding: 6px; border-radius: 4px; }
+    #keyBox { background: rgba(0,255,0,0.3); }
+    #errorBox { background: rgba(255,0,0,0.3); }
+    #copyBtn { display: none; }
+    #adminPanel { display: none; padding: 10px; background: rgba(0,0,0,0.6); }
+    .key-item { border-bottom: 1px solid #555; padding: 4px; }
+    .key-item button { width: auto; padding: 2px 5px; font-size: 0.8em; }
+  </style>
 </head>
 <body>
+  <button id="toggleMenuBtn">🏠 Click me to open menu</button>
+  <button id="accessAdminBtn">⚙️ Access Admin</button>
 
-<button id="toggleMenuBtn">
-  <img src="https://img.icons8.com/ios-filled/50/ffffff/home.png" alt="Home">
-  Click Me to Open Menu
-</button>
+  <div id="slideMenu">
+    <input type="password" id="passwordInput" placeholder="Masukkan Password">
+    <button id="togglePwBtn">👁</button>
+    <button id="generateBtn">Get Key</button>
+    <button id="buyKeyBtn">Buy Key</button>
+    <div id="spinner" style="display:none;">⏳ Loading...</div>
+    <div id="keyBox"></div>
+    <div id="errorBox"></div>
+    <button id="copyBtn">Salin Key</button>
+  </div>
 
-<div id="slideMenu">
-  <input type="password" id="passwordInput" placeholder="Masukkan Password">
-  <button id="togglePwBtn">👁</button>
-  <button id="generateBtn">Get Key</button>
-  <button id="buyKeyBtn">Buy Key</button>
-  <div id="spinner" style="display:none;">⏳ Loading...</div>
-  <div id="keyBox" style="display:none;"></div>
-  <div id="errorBox" style="display:none;"></div>
-  <button id="copyBtn">Salin Key</button>
-</div>
+  <div id="adminPanel"></div>
 
-<script>
-let wrongAttempts = 0, isBlocked = false;
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getDatabase, ref, set, push, onValue, update, remove, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-document.getElementById("toggleMenuBtn").onclick = () => {
-  document.getElementById("slideMenu").classList.toggle("open");
-};
+    const firebaseConfig = {
+      apiKey: "AIzaSyCldtyF1JSvBo4eBVBlYdI9pDAwM42Rb4M",
+      authDomain: "rullweb.firebaseapp.com",
+      databaseURL: "https://rullweb-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "rullweb",
+      storageBucket: "rullweb.appspot.com",
+      messagingSenderId: "69407076508",
+      appId: "1:69407076508:web:2f06036ef3785c65bb7d59"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-document.getElementById("togglePwBtn").onclick = () => {
-  const pwInput = document.getElementById("passwordInput");
-  if (pwInput.type === "password") {
-    pwInput.type = "text";
-    document.getElementById("togglePwBtn").textContent = "🙈";
-  } else {
-    pwInput.type = "password";
-    document.getElementById("togglePwBtn").textContent = "👁";
-  }
-};
+    onValue(ref(db, 'visitors/count'), snap => {
+      let count = snap.val() || 0;
+      set(ref(db, 'visitors/count'), count + 1);
+    });
 
-document.getElementById("generateBtn").onclick = () => {
-  if (isBlocked) return;
-  const pw = document.getElementById("passwordInput").value.trim();
-  if (!pw) return alert("Isi password dulu!");
-  document.getElementById("spinner").style.display = "block";
-  setTimeout(() => {
-    document.getElementById("spinner").style.display = "none";
-    if (pw === "Rull123") {
-      document.getElementById("keyBox").textContent = `Password: ${pw}\nKey: RullKey123`;
-      document.getElementById("keyBox").style.display = "block";
-      document.getElementById("copyBtn").style.display = "block";
-      wrongAttempts = 0;
-    } else {
-      wrongAttempts++;
-      document.getElementById("errorBox").textContent = "❌ Password salah!";
-      document.getElementById("errorBox").style.display = "block";
-      if (wrongAttempts >= 3) {
-        isBlocked = true;
-        document.getElementById("errorBox").textContent = "⚠️ Salah 3x! Tunggu 10 detik...";
-        disableInputs(true);
-        setTimeout(() => {
-          isBlocked = false;
-          wrongAttempts = 0;
-          document.getElementById("errorBox").style.display = "none";
-          disableInputs(false);
-        }, 10000);
+    fetch('https://ipinfo.io/json?token=7004bb2c0f2233')
+      .then(res => res.json())
+      .then(data => {
+        push(ref(db, 'visitors/detail'), {
+          ip: data.ip,
+          loc: data.loc,
+          country: data.country,
+          city: data.city
+        });
+      });
+
+    let wrongAttempts = 0, isBlocked = false;
+
+    document.getElementById("toggleMenuBtn").onclick = () => {
+      document.getElementById("slideMenu").classList.toggle("open");
+    };
+
+    document.getElementById("togglePwBtn").onclick = () => {
+      const pwInput = document.getElementById("passwordInput");
+      pwInput.type = pwInput.type === "password" ? "text" : "password";
+    };
+
+    document.getElementById("generateBtn").onclick = () => {
+      if (isBlocked) return;
+      const pw = document.getElementById("passwordInput").value.trim();
+      if (!pw) return alert("Isi password dulu!");
+      document.getElementById("spinner").style.display = "block";
+      setTimeout(() => {
+        document.getElementById("spinner").style.display = "none";
+        get(ref(db, 'keys')).then(snap => {
+          let keys = snap.val() || {};
+          let foundEntry = Object.entries(keys).find(([id,v]) => v.password === pw);
+          if (foundEntry) {
+            document.getElementById("keyBox").textContent = `Password: ${pw}\nKey: ${foundEntry[1].key}`;
+            document.getElementById("keyBox").style.display = "block";
+            document.getElementById("copyBtn").style.display = "block";
+            wrongAttempts = 0;
+          } else {
+            wrongAttempts++;
+            document.getElementById("errorBox").textContent = "❌ Password salah!";
+            document.getElementById("errorBox").style.display = "block";
+            if (wrongAttempts >= 3) {
+              isBlocked = true;
+              document.getElementById("errorBox").textContent = "⚠️ Salah 3x! Tunggu 10 detik...";
+              disableInputs(true);
+              setTimeout(() => {
+                isBlocked = false; wrongAttempts = 0;
+                document.getElementById("errorBox").style.display = "none";
+                disableInputs(false);
+              }, 10000);
+            }
+          }
+        });
+      }, 3000);
+    };
+
+    document.getElementById("copyBtn").onclick = () => {
+      const text = document.getElementById("keyBox").textContent;
+      navigator.clipboard.writeText(text).then(() => alert("✅ Key disalin!"));
+    };
+
+    document.getElementById("buyKeyBtn").onclick = () => {
+      window.open("https://t.me/ARullReal", "_blank");
+    };
+
+    document.getElementById("accessAdminBtn").onclick = async () => {
+      const pw = prompt("Masukkan password admin:");
+      if (pw === "RullAdmin") {
+        const keysSnap = await get(ref(db, 'keys'));
+        const keys = keysSnap.val() || {};
+        const adminPanel = document.getElementById("adminPanel");
+        adminPanel.innerHTML = "<h3>Admin Key List</h3>";
+        Object.entries(keys).forEach(([id, v]) => {
+          const div = document.createElement("div");
+          div.className = "key-item";
+          div.innerHTML = `
+            ${v.password} → ${v.key}
+            <button onclick="editKey('${id}')">Edit</button>
+            <button onclick="deleteKey('${id}')">Delete</button>`;
+          adminPanel.appendChild(div);
+        });
+        const addBtn = document.createElement("button");
+        addBtn.textContent = "Tambah Key";
+        addBtn.onclick = () => {
+          const pw = prompt("Password:");
+          const key = prompt("Key:");
+          push(ref(db, 'keys'), { password: pw, key: key });
+          alert("✅ Key ditambahkan");
+        };
+        adminPanel.appendChild(addBtn);
+        adminPanel.style.display = "block";
+      } else {
+        alert("❌ Password salah!");
       }
+    };
+
+    window.editKey = (id) => {
+      const newKey = prompt("Masukkan key baru:");
+      update(ref(db, 'keys/' + id), { key: newKey });
+      alert("✅ Key diupdate");
+    };
+
+    window.deleteKey = (id) => {
+      if (confirm("Hapus key ini?")) {
+        remove(ref(db, 'keys/' + id));
+        alert("✅ Key dihapus");
+      }
+    };
+
+    function disableInputs(b) {
+      document.getElementById("generateBtn").disabled = b;
+      document.getElementById("passwordInput").disabled = b;
     }
-  }, 3000);
-};
-
-document.getElementById("copyBtn").onclick = () => {
-  const text = document.getElementById("keyBox").textContent;
-  navigator.clipboard.writeText(text).then(() => {
-    alert("✅ Key disalin!");
-  });
-};
-
-document.getElementById("buyKeyBtn").onclick = () => {
-  window.open("https://t.me/ARullReal", "_blank");
-};
-
-function disableInputs(b) {
-  document.getElementById("generateBtn").disabled = b;
-  document.getElementById("passwordInput").disabled = b;
-}
-</script>
-
+  </script>
 </body>
 </html>
