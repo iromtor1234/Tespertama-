@@ -1,28 +1,44 @@
 body, html {
   margin: 0;
   padding: 0;
-  overflow: hidden;
   font-family: sans-serif;
+  height: 100%;
+  overflow-x: hidden;
 }
-canvas {
+
+.neon-bg {
   position: fixed;
   top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: linear-gradient(135deg, #0ff, #00f, #f0f, #0ff);
+  background-size: 600% 600%;
+  animation: neonMove 15s ease infinite;
   z-index: -1;
 }
+
+@keyframes neonMove {
+  0% {background-position: 0% 50%;}
+  50% {background-position: 100% 50%;}
+  100% {background-position: 0% 50%;}
+}
+
 #content {
   position: relative;
   z-index: 1;
   padding: 20px;
   color: #fff;
 }
+
 input, button {
   margin: 5px;
   padding: 10px;
   font-size: 16px;
 }
+
 #spinner {
   display: none;
 }
+
 .toast {
   position: fixed;
   bottom: 20px;
@@ -34,6 +50,7 @@ input, button {
   transition: all 0.3s ease;
   transform: translateY(20px);
 }
+
 #adminModal {
   display: none;
   position: fixed;
@@ -45,9 +62,11 @@ input, button {
   z-index: 10;
   overflow: auto;
 }
+
 #adminContent {
   display: none;
 }
+
 #adminPanel {
   max-width: 400px;
   margin: auto;
