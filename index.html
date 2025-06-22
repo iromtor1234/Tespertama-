@@ -1,24 +1,36 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Get Key + Visitor Counter</title>
+  <title>Multi Password Get Key + Visitor Counter</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <style>
     body {
+      background: linear-gradient(270deg, #ff00c8, #00ffe7, #ff00c8);
+      background-size: 600% 600%;
+      animation: gradientBG 10s ease infinite;
       font-family: sans-serif;
-      background: #0f172a;
-      color: white;
       text-align: center;
-      padding: 40px;
+      color: white;
+      padding: 50px;
     }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
     input, button {
       padding: 10px;
       font-size: 16px;
       margin: 5px;
+      border: none;
+      border-radius: 5px;
     }
+
     #result {
       margin-top: 20px;
       font-size: 18px;
@@ -26,15 +38,18 @@
   </style>
 </head>
 <body>
+
   <h2>Masukkan Password untuk Get Key</h2>
   <input type="password" id="passwordInput" placeholder="Masukkan password">
+  <button onclick="toggleSensor()">👁️</button>
+  <br>
   <button onclick="checkPassword()">Get Key</button>
+
   <div id="result"></div>
 
   <p>Jumlah Kunjungan: <span id="visitorCount">0</span></p>
 
   <script>
-    // Konfigurasimu
     const firebaseConfig = {
       apiKey: "AIzaSyCldtyF1JSvBo4eBVBlYdI9pDAwM42Rb4M",
       authDomain: "rullweb.firebaseapp.com",
@@ -48,41 +63,45 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Hitung kunjungan
+    // Visitor counter
     const visitorRef = db.ref("visitors/count");
-    visitorRef.transaction(current => (current || 0) + 1);
+    visitorRef.transaction(count => (count || 0) + 1);
     visitorRef.on("value", snapshot => {
       document.getElementById("visitorCount").textContent = snapshot.val();
     });
 
-    // Cek password
     function checkPassword() {
       const input = document.getElementById("passwordInput").value;
-      const passRef = db.ref("password");
+      const passRef = db.ref("passwords/" + input);
 
       passRef.once("value").then(snapshot => {
-        const realPass = snapshot.val();
-        if (input === realPass) {
+        if (snapshot.exists()) {
+          const key = snapshot.val();
           document.getElementById("result").innerHTML = `
             ✅ Password benar!<br>
-            Key: <b>Rull-KEY-12345</b><br>
-            <button onclick="copyKey('Rull-KEY-12345')">Salin Key</button>
+            Key: <b>${key}</b><br>
+            <button onclick="copyKey('${key}')">Salin Key</button>
           `;
         } else {
           document.getElementById("result").innerHTML = "❌ Password salah!";
         }
       }).catch(err => {
-        console.error("Gagal ambil password:", err);
+        console.error("Error:", err);
         document.getElementById("result").textContent = "Terjadi kesalahan.";
       });
     }
 
-    // Salin ke clipboard
     function copyKey(key) {
       navigator.clipboard.writeText(key).then(() => {
         alert("Key disalin!");
       });
     }
+
+    function toggleSensor() {
+      const input = document.getElementById("passwordInput");
+      input.type = (input.type === "password") ? "text" : "password";
+    }
   </script>
+
 </body>
 </html>
