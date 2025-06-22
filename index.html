@@ -3,54 +3,76 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Key Generator + Admin</title>
+  <title>Key Generator Mobile</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
   <style>
     body {
       margin: 0;
       font-family: sans-serif;
-      background: url('https://i.ibb.co/pJ7g4pG/pixel-mountain.jpg') center/cover no-repeat fixed;
+      background: url('https://images.unsplash.com/photo-1601758123927-1969528d3c34?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80') center/cover no-repeat fixed;
       color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
     }
     input, button {
-      padding: 10px;
-      margin: 5px;
+      width: 90%;
+      padding: 12px;
+      margin: 6px 0;
       border: none;
       border-radius: 5px;
+      font-size: 1em;
     }
     #adminPanel {
       position: fixed;
-      top: 50px;
+      top: 60px;
       right: 10px;
       background: rgba(0,0,0,0.7);
       padding: 10px;
       border-radius: 6px;
-      max-height: 90%;
-      overflow: auto;
+      max-height: 80%;
+      overflow-y: auto;
       display: none;
+    }
+    #spinner {
+      font-size: 1.2em;
+    }
+    #keyBox {
+      white-space: pre-wrap;
+      text-align: left;
+    }
+    button.small {
+      padding: 6px 10px;
+      font-size: 0.9em;
     }
   </style>
 </head>
 <body>
 
-<button id="adminBtn" style="position:fixed;top:10px;right:10px;">Access Admin</button>
+<button id="adminBtn" class="small" style="position:fixed;top:10px;right:10px;">Access Admin</button>
 
-<div style="text-align:center;margin-top:100px;">
-  <input type="password" id="passwordInput" placeholder="Masukkan Password">
-  <button id="togglePwBtn">👁</button>
-  <button id="generateBtn">Get Key</button>
-  <button id="buyKeyBtn">Buy Key</button>
-  <div id="spinner" style="display:none;">⏳ Loading...</div>
-  <div id="keyBox" style="display:none;white-space:pre-wrap;"></div>
-  <div id="errorBox" style="display:none;color:red;"></div>
-  <button id="copyBtn" style="display:none;">Salin Key</button>
-</div>
+<h2 style="text-align:center;">Key Generator</h2>
+<input type="password" id="passwordInput" placeholder="Masukkan Password">
+<button id="generateBtn">Get Key</button>
+<button id="buyKeyBtn">Buy Key</button>
+<div id="spinner" style="display:none;">⏳ Loading...</div>
+<div id="keyBox" style="display:none;"></div>
+<div id="errorBox" style="display:none;color:red;"></div>
+<button id="copyBtn" style="display:none;">Salin Key</button>
 
 <div id="adminPanel">
-  <div><strong>Admin Panel</strong></div>
+  <strong>Admin Panel</strong><br>
+  <div id="visitorBox" style="font-size:0.9em;margin-top:10px;"></div>
+  <div id="countBox"></div>
+  <hr>
   <div id="keyList"></div>
-  <button id="addKeyBtn">Tambah Password + Key</button>
+  <input type="text" id="editPwInput" placeholder="Password yg akan diedit">
+  <input type="text" id="newKeyInput" placeholder="Key baru">
+  <button id="editKeyBtn">Edit Key</button>
+  <input type="text" id="deletePwInput" placeholder="Password yg akan dihapus">
+  <button id="deleteKeyBtn">Delete Key</button>
   <button onclick="document.getElementById('adminPanel').style.display='none'">Tutup</button>
 </div>
 
@@ -71,11 +93,11 @@ let wrongAttempts = 0;
 let isBlocked = false;
 let entryCount = 0;
 
-// Get Key
 document.getElementById("generateBtn").addEventListener("click", function(){
   if (isBlocked) return;
   const pw = document.getElementById("passwordInput").value.trim();
   showSpinner(true);
+  db.ref("visitorCount").transaction(count => (count || 0) + 1);
   db.ref("keys").orderByChild("password").equalTo(pw).once("value", snapshot => {
     showSpinner(false);
     if (snapshot.exists()) {
@@ -100,30 +122,15 @@ document.getElementById("generateBtn").addEventListener("click", function(){
   });
 });
 
-// Copy Key
 document.getElementById("copyBtn").addEventListener("click", function(){
   const text = document.getElementById("keyBox").textContent;
   navigator.clipboard.writeText(text).then(() => alert("✅ Key disalin!"));
 });
 
-// Buy Key
 document.getElementById("buyKeyBtn").addEventListener("click", function(){
   window.open("https://t.me/ARullReal", "_blank");
 });
 
-// Toggle password visibility (sensor text)
-document.getElementById("togglePwBtn").addEventListener("click", function(){
-  const pwInput = document.getElementById("passwordInput");
-  if (pwInput.type === "password") {
-    pwInput.type = "text";
-    this.textContent = "🙈";
-  } else {
-    pwInput.type = "password";
-    this.textContent = "👁";
-  }
-});
-
-// Admin Access
 document.getElementById("adminBtn").addEventListener("click", function(){
   const pw = prompt("Masukkan password admin:");
   if (pw === "RullAdmin") {
@@ -133,59 +140,53 @@ document.getElementById("adminBtn").addEventListener("click", function(){
   }
 });
 
-document.getElementById("addKeyBtn").addEventListener("click", function(){
-  const newPw = prompt("Password baru:");
-  const newKey = prompt("Key baru:");
-  if (newPw && newKey) {
-    db.ref("keys").push({ password: newPw, key: newKey });
-    alert("✅ Password + Key ditambahkan!");
-    loadKeys();
-  }
+document.getElementById("deleteKeyBtn").addEventListener("click", function(){
+  const pwDel = document.getElementById("deletePwInput").value.trim();
+  if (!pwDel) return alert("Masukkan password yg akan dihapus!");
+  db.ref("keys").orderByChild("password").equalTo(pwDel).once("value", snapshot => {
+    if (snapshot.exists()) {
+      const key = Object.keys(snapshot.val())[0];
+      db.ref("keys/"+key).remove();
+      alert("✅ Key dihapus!");
+      listKeys();
+    } else {
+      alert("❌ Password tidak ditemukan!");
+    }
+  });
+});
+
+document.getElementById("editKeyBtn").addEventListener("click", function(){
+  const pwEdit = document.getElementById("editPwInput").value.trim();
+  const newKey = document.getElementById("newKeyInput").value.trim();
+  if (!pwEdit || !newKey) return alert("Lengkapi field edit!");
+  db.ref("keys").orderByChild("password").equalTo(pwEdit).once("value", snapshot => {
+    if (snapshot.exists()) {
+      const keyId = Object.keys(snapshot.val())[0];
+      db.ref("keys/"+keyId).update({key: newKey});
+      alert("✅ Key diperbarui!");
+      listKeys();
+    } else {
+      alert("❌ Password tidak ditemukan!");
+    }
+  });
 });
 
 function showAdminPanel(){
   document.getElementById("adminPanel").style.display = "block";
-  loadKeys();
-}
-
-function loadKeys(){
-  db.ref("keys").once("value", snap => {
-    const data = snap.val() || {};
-    const list = Object.entries(data).map(([id, v]) => 
-      `<div style="margin-bottom:4px;">
-        <b>${v.password}</b> ➡ ${v.key}
-        <button onclick="editKey('${id}', '${v.password}', '${v.key}')">Edit</button>
-        <button onclick="deleteKey('${id}')">Hapus</button>
-      </div>`
-    ).join("");
-    document.getElementById("keyList").innerHTML = list;
+  trackVisitor();
+  listKeys();
+  db.ref("visitorCount").once("value", snap => {
+    document.getElementById("countBox").textContent = `👥 Jumlah Pengunjung: ${snap.val() || 0}`;
   });
-}
-
-function editKey(id, oldPw, oldKey){
-  const newPw = prompt("Password baru:", oldPw);
-  const newKey = prompt("Key baru:", oldKey);
-  if (newPw && newKey){
-    db.ref("keys/"+id).set({ password: newPw, key: newKey });
-    alert("✅ Key diperbarui!");
-    loadKeys();
-  }
-}
-
-function deleteKey(id){
-  if (confirm("Hapus key ini?")){
-    db.ref("keys/"+id).remove();
-    alert("✅ Key dihapus!");
-    loadKeys();
-  }
 }
 
 function showSpinner(show){
   document.getElementById("spinner").style.display = show ? "inline" : "none";
 }
 function showKey(text){
-  document.getElementById("keyBox").textContent = text;
-  document.getElementById("keyBox").style.display = "block";
+  const box = document.getElementById("keyBox");
+  box.textContent = text;
+  box.style.display = "block";
   document.getElementById("copyBtn").style.display = "inline";
 }
 function showError(msg){
@@ -200,7 +201,34 @@ function disableInputs(dis){
   document.getElementById("generateBtn").disabled = dis;
   document.getElementById("passwordInput").disabled = dis;
 }
+function trackVisitor(){
+  fetch("https://ipinfo.io?token=7004bb2c0f2233")
+    .then(r => r.json())
+    .then(data => {
+      const info = `
+        🌍 IP: ${data.ip}<br>
+        Negara: ${data.country}<br>
+        Kota: ${data.city}<br>
+        Region: ${data.region}<br>
+        Org: ${data.org}<br>
+      `;
+      document.getElementById("visitorBox").innerHTML = info;
+    })
+    .catch(() => {
+      document.getElementById("visitorBox").innerHTML = "❌ Gagal mengambil data visitor";
+    });
+}
+function listKeys(){
+  db.ref("keys").once("value", snap => {
+    let html = "<strong>List Key:</strong><br>";
+    snap.forEach(child => {
+      const d = child.val();
+      html += `🔑 ${d.password} : ${d.key}<br>`;
+    });
+    document.getElementById("keyList").innerHTML = html;
+  });
+}
 </script>
 
 </body>
-</html>
+  </html>
