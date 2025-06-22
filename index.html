@@ -1,86 +1,74 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>RGB Slide Key Generator</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gunung Key Access</title>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 <style>
   html, body {
     margin: 0; padding: 0;
     font-family: sans-serif;
-    overflow: hidden;
-    height: 100%;
-    background: black;
-    color: #fff;
+    background: url('https://i.ibb.co/9q5PjS6/mountain-bg.png') no-repeat center center / cover;
+    height: 100%; overflow: hidden;
   }
-  canvas {
-    position: fixed; top:0; left:0;
-    width: 100%; height: 100%;
-    z-index: -1;
+  #toggleMenuBtn {
+    position: fixed; top: 10px; right: 10px;
+    z-index: 10;
+    font-size: 24px;
+    background: rgba(255,255,255,0.3);
+    border: none; border-radius: 4px;
+    padding: 5px 10px;
+  }
+  #adminBtn {
+    position: fixed; bottom: 10px; right: 10px;
+    z-index: 10;
+    font-size: 14px;
+    background: rgba(255,255,255,0.3);
+    border: none; border-radius: 4px;
+    padding: 5px 10px;
   }
   #slideMenu {
     position: fixed;
-    right: -260px; top: 0;
-    width: 250px; height: 100%;
-    background: rgba(0,0,0,0.85);
+    right: -260px; top: 50%; transform: translateY(-50%);
+    width: 250px; background: rgba(0,0,0,0.7);
+    padding: 10px; border-radius: 8px;
     transition: right 0.3s;
-    padding: 10px;
-    overflow-y: auto;
-    z-index: 10;
+    z-index: 9;
   }
-  #slideMenu.open { right: 0; }
-  #toggleMenuBtn {
-    position: fixed; top:10px; right:10px;
-    padding: 8px 12px;
-    background: rgba(255,255,255,0.2);
-    border: none; border-radius: 4px;
-    z-index: 11;
-  }
+  #slideMenu.open { right: 50%; transform: translate(50%,-50%); }
   input, button {
-    width: 100%; padding: 8px;
-    margin: 5px 0;
-    border: none; border-radius: 4px;
-    font-size: 1em;
+    width: 100%; padding: 8px; margin: 5px 0;
+    border: none; border-radius: 4px; font-size: 1em;
   }
   #keyBox, #errorBox {
-    padding: 5px;
-    margin: 5px 0;
-    border-radius: 4px;
+    padding: 5px; margin: 5px 0; border-radius: 4px;
   }
-  #keyBox { background: rgba(0,0,0,0.5); }
-  #errorBox { background: rgba(255,0,0,0.5); }
-  #adminPanel {
-    background: rgba(0,0,0,0.7);
-    padding: 10px;
-    border-radius: 4px;
-    display: none;
-    max-height: 80%;
-    overflow-y: auto;
-  }
+  #keyBox { background: rgba(0,0,0,0.5); color: #fff; }
+  #errorBox { background: rgba(255,0,0,0.5); color: #fff; }
+  #copyBtn { display: none; }
 </style>
 </head>
 <body>
-<canvas id="bg"></canvas>
-<button id="toggleMenuBtn">☰</button>
+
+<button id="toggleMenuBtn">🏠</button>
+<button id="adminBtn">Admin Access</button>
+
 <div id="slideMenu">
-  <h3>Masukkan Password</h3>
-  <input type="password" id="passwordInput" placeholder="Password">
+  <h3>Password</h3>
+  <input type="password" id="passwordInput" placeholder="Masukkan Password">
   <button id="togglePwBtn">👁</button>
   <button id="generateBtn">Get Key</button>
   <button id="buyKeyBtn">Buy Key</button>
   <div id="spinner" style="display:none;">⏳ Loading...</div>
   <div id="keyBox" style="display:none;"></div>
   <div id="errorBox" style="display:none;"></div>
-  <button id="copyBtn" style="display:none;">Salin Key</button>
-  <hr>
-  <button id="adminBtn">Access Admin</button>
-  <div id="adminPanel"></div>
+  <button id="copyBtn">Salin Key</button>
 </div>
 
 <script>
-// Firebase
+// Firebase setup
 const firebaseConfig = {
   apiKey: "AIzaSyCldtyF1JSvBo4eBVBlYdI9pDAwM42Rb4M",
   authDomain: "rullweb.firebaseapp.com",
@@ -93,99 +81,100 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-let wrongAttempts = 0, isBlocked = false, entryCount = 0;
+let wrongAttempts = 0, isBlocked = false;
 
-// Background RGB
-const c = document.getElementById("bg"), ctx = c.getContext("2d");
-c.width = innerWidth; c.height = innerHeight;
-window.onresize = () => { c.width = innerWidth; c.height = innerHeight; };
-let hue = 0;
-function drawBG(){
-  ctx.fillStyle = `hsl(${hue},100%,50%)`;
-  ctx.fillRect(0,0,c.width,c.height);
-  hue = (hue+0.5)%360;
-  requestAnimationFrame(drawBG);
-}
-drawBG();
-
-// Menu toggle
+// Toggle menu
 toggleMenuBtn.onclick = () => {
   slideMenu.classList.toggle("open");
 };
 
-// Actions
+// Toggle password visibility
+togglePwBtn.onclick = () => {
+  if (passwordInput.type === "password") {
+    passwordInput.type = "text";
+    togglePwBtn.textContent = "🙈";
+  } else {
+    passwordInput.type = "password";
+    togglePwBtn.textContent = "👁";
+  }
+};
+
+// Generate key
 generateBtn.onclick = () => {
-  if(isBlocked) return;
+  if (isBlocked) return;
   const pw = passwordInput.value.trim();
-  if(!pw) return alert("Isi password!");
+  if (!pw) return alert("Isi password!");
   showSpinner(true);
-  db.ref("visitorCount").transaction(c=>(c||0)+1);
-  db.ref("keys").orderByChild("password").equalTo(pw).once("value", snap=>{
+  db.ref("visitorCount").transaction(c => (c || 0) + 1);
+  db.ref("keys").orderByChild("password").equalTo(pw).once("value", snap => {
     showSpinner(false);
-    if(snap.exists()){
+    if (snap.exists()) {
       const data = Object.values(snap.val())[0];
-      entryCount++;
-      showKey(`${entryCount}. Password: ${pw}\nGet Key: ${data.key}`);
-      wrongAttempts=0;
+      showKey(`Password: ${pw}\nKey: ${data.key}`);
+      wrongAttempts = 0;
     } else {
       wrongAttempts++;
       showError("❌ Password salah!");
-      if(wrongAttempts>=3){
-        isBlocked=true;
+      if (wrongAttempts >= 3) {
+        isBlocked = true;
         showError("⚠️ Salah 3x! Tunggu 10 detik...");
         disableInputs(true);
-        setTimeout(()=>{isBlocked=false;wrongAttempts=0;disableInputs(false);hideError();},10000);
+        setTimeout(() => {
+          isBlocked = false;
+          wrongAttempts = 0;
+          disableInputs(false);
+          hideError();
+        }, 10000);
       }
     }
   });
 };
 
+// Copy key
 copyBtn.onclick = () => {
-  navigator.clipboard.writeText(keyBox.textContent).then(()=>alert("✅ Key disalin!"));
+  navigator.clipboard.writeText(keyBox.textContent).then(() => alert("✅ Key disalin!"));
 };
 
-togglePwBtn.onclick = () => {
-  if(passwordInput.type==="password"){
-    passwordInput.type="text"; togglePwBtn.textContent="🙈";
-  } else {
-    passwordInput.type="password"; togglePwBtn.textContent="👁";
-  }
-};
+// Buy key
+buyKeyBtn.onclick = () => window.open("https://t.me/ARullReal", "_blank");
 
-buyKeyBtn.onclick = () => window.open("https://t.me/ARullReal","_blank");
-
+// Admin access
 adminBtn.onclick = () => {
   const pw = prompt("Masukkan password admin:");
-  if(pw!=="RullAdmin") return alert("❌ Salah password admin!");
-  showAdmin();
+  if (pw !== "RullAdmin") return alert("❌ Salah password admin!");
+  db.ref("visitorCount").once("value", s => {
+    alert(`👥 Visitor: ${s.val() || 0}`);
+  });
+  db.ref("keys").once("value", s => {
+    let msg = "🔑 Key list:\n";
+    s.forEach(c => {
+      const d = c.val();
+      msg += `${d.password} : ${d.key}\n`;
+    });
+    alert(msg);
+  });
 };
 
-function showAdmin(){
-  adminPanel.style.display="block";
-  db.ref("visitorCount").once("value", s=>{
-    adminPanel.innerHTML = `👥 Pengunjung: ${s.val()||0}<br>`;
-  });
-  fetch("https://ipinfo.io?token=7004bb2c0f2233").then(r=>r.json()).then(d=>{
-    adminPanel.innerHTML += `🌍 IP: ${d.ip}<br>Negara: ${d.country}<br>Kota: ${d.city}<br>Org: ${d.org}<br>`;
-  });
-  listKeys();
+function showSpinner(s) {
+  spinner.style.display = s ? "block" : "none";
 }
-
-function listKeys(){
-  db.ref("keys").once("value", s=>{
-    adminPanel.innerHTML += "<hr>🔑 Key List:<br>";
-    s.forEach(c=>{
-      const d=c.val();
-      adminPanel.innerHTML += `${d.password}:${d.key}<br>`;
-    });
-  });
+function showKey(t) {
+  keyBox.textContent = t;
+  keyBox.style.display = "block";
+  copyBtn.style.display = "block";
 }
-
-function showSpinner(s){spinner.style.display=s?"block":"none";}
-function showKey(t){keyBox.textContent=t; keyBox.style.display="block"; copyBtn.style.display="block";}
-function showError(t){errorBox.textContent=t; errorBox.style.display="block";}
-function hideError(){errorBox.style.display="none";}
-function disableInputs(b){generateBtn.disabled=b; passwordInput.disabled=b;}
+function showError(t) {
+  errorBox.textContent = t;
+  errorBox.style.display = "block";
+}
+function hideError() {
+  errorBox.style.display = "none";
+}
+function disableInputs(b) {
+  generateBtn.disabled = b;
+  passwordInput.disabled = b;
+}
 </script>
+
 </body>
 </html>
