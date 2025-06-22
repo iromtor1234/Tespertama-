@@ -1,96 +1,82 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>RGB Key Generator</title>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      height: 100%;
-      font-family: sans-serif;
-      color: #fff;
-    }
-    canvas {
-      position: fixed;
-      top: 0; left: 0;
-      z-index: -1;
-    }
-    .container {
-      position: relative;
-      z-index: 1;
-      text-align: center;
-      padding: 20px;
-    }
-    input, button {
-      padding: 10px;
-      border: none;
-      border-radius: 5px;
-      margin: 5px 0;
-      font-size: 1em;
-      width: 90%;
-      max-width: 300px;
-    }
-    #keyBox, #errorBox {
-      margin-top: 10px;
-      padding: 10px;
-      border-radius: 5px;
-    }
-    #keyBox {
-      background: rgba(0,0,0,0.5);
-    }
-    #errorBox {
-      background: rgba(255,0,0,0.5);
-    }
-    #adminPanel {
-      position: fixed;
-      top: 50px;
-      right: 10px;
-      background: rgba(0,0,0,0.7);
-      padding: 10px;
-      border-radius: 6px;
-      display: none;
-      max-height: 90%;
-      overflow-y: auto;
-      font-size: 0.9em;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RGB Slide Key Generator</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    font-family: sans-serif;
+    overflow: hidden;
+    height: 100%;
+    background: black;
+    color: #fff;
+  }
+  canvas {
+    position: fixed; top:0; left:0;
+    width: 100%; height: 100%;
+    z-index: -1;
+  }
+  #slideMenu {
+    position: fixed;
+    right: -260px; top: 0;
+    width: 250px; height: 100%;
+    background: rgba(0,0,0,0.85);
+    transition: right 0.3s;
+    padding: 10px;
+    overflow-y: auto;
+    z-index: 10;
+  }
+  #slideMenu.open { right: 0; }
+  #toggleMenuBtn {
+    position: fixed; top:10px; right:10px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.2);
+    border: none; border-radius: 4px;
+    z-index: 11;
+  }
+  input, button {
+    width: 100%; padding: 8px;
+    margin: 5px 0;
+    border: none; border-radius: 4px;
+    font-size: 1em;
+  }
+  #keyBox, #errorBox {
+    padding: 5px;
+    margin: 5px 0;
+    border-radius: 4px;
+  }
+  #keyBox { background: rgba(0,0,0,0.5); }
+  #errorBox { background: rgba(255,0,0,0.5); }
+  #adminPanel {
+    background: rgba(0,0,0,0.7);
+    padding: 10px;
+    border-radius: 4px;
+    display: none;
+    max-height: 80%;
+    overflow-y: auto;
+  }
+</style>
 </head>
 <body>
 <canvas id="bg"></canvas>
-
-<div class="container">
-  <button id="adminBtn" style="position:fixed;top:10px;right:10px;">Access Admin</button>
-  <h2>RGB Key Generator</h2>
-  <input type="password" id="passwordInput" placeholder="Masukkan Password">
-  <button id="togglePwBtn">👁</button><br>
+<button id="toggleMenuBtn">☰</button>
+<div id="slideMenu">
+  <h3>Masukkan Password</h3>
+  <input type="password" id="passwordInput" placeholder="Password">
+  <button id="togglePwBtn">👁</button>
   <button id="generateBtn">Get Key</button>
   <button id="buyKeyBtn">Buy Key</button>
   <div id="spinner" style="display:none;">⏳ Loading...</div>
   <div id="keyBox" style="display:none;"></div>
   <div id="errorBox" style="display:none;"></div>
   <button id="copyBtn" style="display:none;">Salin Key</button>
-</div>
-
-<div id="adminPanel">
-  <strong>Admin Panel</strong><br>
-  <div id="visitorBox"></div>
-  <div id="countBox"></div>
   <hr>
-  <div id="keyList"></div>
-  <input type="text" id="editPwInput" placeholder="Password yg akan diedit">
-  <input type="text" id="newKeyInput" placeholder="Key baru">
-  <button id="editKeyBtn">Edit Key</button>
-  <input type="text" id="deletePwInput" placeholder="Password yg akan dihapus">
-  <button id="deleteKeyBtn">Delete Key</button>
-  <input type="text" id="newPwInput" placeholder="Password baru">
-  <input type="text" id="newAddKeyInput" placeholder="Key baru">
-  <button id="addKeyBtn">Tambah Key</button>
-  <button onclick="document.getElementById('adminPanel').style.display='none'">Tutup</button>
+  <button id="adminBtn">Access Admin</button>
+  <div id="adminPanel"></div>
 </div>
 
 <script>
@@ -109,25 +95,31 @@ const db = firebase.database();
 
 let wrongAttempts = 0, isBlocked = false, entryCount = 0;
 
-// RGB background
+// Background RGB
 const c = document.getElementById("bg"), ctx = c.getContext("2d");
-c.width = window.innerWidth; c.height = window.innerHeight;
-window.onresize = ()=>{c.width=window.innerWidth;c.height=window.innerHeight;}
+c.width = innerWidth; c.height = innerHeight;
+window.onresize = () => { c.width = innerWidth; c.height = innerHeight; };
 let hue = 0;
 function drawBG(){
   ctx.fillStyle = `hsl(${hue},100%,50%)`;
   ctx.fillRect(0,0,c.width,c.height);
-  hue = (hue + 0.5) % 360;
+  hue = (hue+0.5)%360;
   requestAnimationFrame(drawBG);
 }
 drawBG();
 
-// Main logic
-document.getElementById("generateBtn").addEventListener("click", ()=>{
+// Menu toggle
+toggleMenuBtn.onclick = () => {
+  slideMenu.classList.toggle("open");
+};
+
+// Actions
+generateBtn.onclick = () => {
   if(isBlocked) return;
   const pw = passwordInput.value.trim();
+  if(!pw) return alert("Isi password!");
   showSpinner(true);
-  db.ref("visitorCount").transaction(c=> (c||0)+1);
+  db.ref("visitorCount").transaction(c=>(c||0)+1);
   db.ref("keys").orderByChild("password").equalTo(pw).once("value", snap=>{
     showSpinner(false);
     if(snap.exists()){
@@ -146,86 +138,54 @@ document.getElementById("generateBtn").addEventListener("click", ()=>{
       }
     }
   });
-});
+};
 
-document.getElementById("copyBtn").addEventListener("click",()=>{
-  const text = keyBox.textContent;
-  navigator.clipboard.writeText(text).then(()=>alert("✅ Key disalin!"));
-});
+copyBtn.onclick = () => {
+  navigator.clipboard.writeText(keyBox.textContent).then(()=>alert("✅ Key disalin!"));
+};
 
-document.getElementById("togglePwBtn").addEventListener("click",()=>{
+togglePwBtn.onclick = () => {
   if(passwordInput.type==="password"){
     passwordInput.type="text"; togglePwBtn.textContent="🙈";
   } else {
     passwordInput.type="password"; togglePwBtn.textContent="👁";
   }
-});
+};
 
-document.getElementById("buyKeyBtn").addEventListener("click",()=>{
-  window.open("https://t.me/ARullReal","_blank");
-});
+buyKeyBtn.onclick = () => window.open("https://t.me/ARullReal","_blank");
 
-document.getElementById("adminBtn").addEventListener("click",()=>{
+adminBtn.onclick = () => {
   const pw = prompt("Masukkan password admin:");
-  if(pw==="RullAdmin") showAdminPanel();
-  else alert("❌ Salah password admin!");
-});
+  if(pw!=="RullAdmin") return alert("❌ Salah password admin!");
+  showAdmin();
+};
 
-document.getElementById("deleteKeyBtn").addEventListener("click",()=>{
-  const pw = deletePwInput.value.trim();
-  if(!pw)return alert("Isi password yg dihapus!");
-  db.ref("keys").orderByChild("password").equalTo(pw).once("value",snap=>{
-    if(snap.exists()){
-      const id=Object.keys(snap.val())[0];
-      db.ref("keys/"+id).remove();
-      alert("✅ Key dihapus!"); listKeys();
-    } else alert("❌ Tidak ditemukan!");
+function showAdmin(){
+  adminPanel.style.display="block";
+  db.ref("visitorCount").once("value", s=>{
+    adminPanel.innerHTML = `👥 Pengunjung: ${s.val()||0}<br>`;
   });
-});
-
-document.getElementById("editKeyBtn").addEventListener("click",()=>{
-  const pw=editPwInput.value.trim(), key=newKeyInput.value.trim();
-  if(!pw||!key)return alert("Lengkapi field edit!");
-  db.ref("keys").orderByChild("password").equalTo(pw).once("value",snap=>{
-    if(snap.exists()){
-      const id=Object.keys(snap.val())[0];
-      db.ref("keys/"+id).update({key:key});
-      alert("✅ Key diupdate!"); listKeys();
-    } else alert("❌ Tidak ditemukan!");
+  fetch("https://ipinfo.io?token=7004bb2c0f2233").then(r=>r.json()).then(d=>{
+    adminPanel.innerHTML += `🌍 IP: ${d.ip}<br>Negara: ${d.country}<br>Kota: ${d.city}<br>Org: ${d.org}<br>`;
   });
-});
-
-document.getElementById("addKeyBtn").addEventListener("click",()=>{
-  const pw=newPwInput.value.trim(), key=newAddKeyInput.value.trim();
-  if(!pw||!key)return alert("Lengkapi field tambah!");
-  db.ref("keys").push({password:pw,key:key});
-  alert("✅ Key ditambah!"); listKeys();
-});
-
-// Helper
-function showSpinner(s){spinner.style.display=s?"block":"none";}
-function showKey(t){keyBox.textContent=t;keyBox.style.display="block";copyBtn.style.display="block";}
-function showError(t){errorBox.textContent=t;errorBox.style.display="block";}
-function hideError(){errorBox.style.display="none";}
-function disableInputs(b){generateBtn.disabled=b;passwordInput.disabled=b;}
-function showAdminPanel(){
-  adminPanel.style.display="block"; trackVisitor(); listKeys();
-  db.ref("visitorCount").once("value",snap=>{countBox.textContent=`👥 Pengunjung: ${snap.val()||0}`;});
+  listKeys();
 }
+
 function listKeys(){
-  db.ref("keys").once("value",snap=>{
-    let html="🔑 List:<br>";
-    snap.forEach(c=>{const d=c.val();html+=`${d.password}:${d.key}<br>`;});
-    keyList.innerHTML=html;
+  db.ref("keys").once("value", s=>{
+    adminPanel.innerHTML += "<hr>🔑 Key List:<br>";
+    s.forEach(c=>{
+      const d=c.val();
+      adminPanel.innerHTML += `${d.password}:${d.key}<br>`;
+    });
   });
 }
-function trackVisitor(){
-  fetch("https://ipinfo.io?token=7004bb2c0f2233")
-    .then(r=>r.json()).then(d=>{
-      visitorBox.innerHTML=`🌍 IP: ${d.ip}<br>Negara: ${d.country}<br>Kota: ${d.city}<br>Org: ${d.org}`;
-    })
-    .catch(()=>visitorBox.innerHTML="❌ Gagal tracking");
-}
+
+function showSpinner(s){spinner.style.display=s?"block":"none";}
+function showKey(t){keyBox.textContent=t; keyBox.style.display="block"; copyBtn.style.display="block";}
+function showError(t){errorBox.textContent=t; errorBox.style.display="block";}
+function hideError(){errorBox.style.display="none";}
+function disableInputs(b){generateBtn.disabled=b; passwordInput.disabled=b;}
 </script>
 </body>
 </html>
