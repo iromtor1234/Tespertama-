@@ -3,30 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Website Key + Admin</title>
+  <title>Key Generator + Tracking</title>
   <style>
     body {
-      margin:0;
+      margin: 0;
       background: url('https://opengameart.org/sites/default/files/background_40.png') no-repeat center center fixed;
       background-size: cover;
       font-family: sans-serif;
       color: #0ff;
     }
     #adminBtn {
-      position: fixed; top:10px; right:10px;
-      padding:5px 10px; background:rgba(0,0,0,0.5); border:1px solid #0ff; border-radius:4px;
+      position: fixed; top: 10px; right: 10px;
+      padding: 5px 10px; background: rgba(0,0,0,0.5); border: 1px solid #0ff; border-radius: 4px;
     }
     .container {
       text-align: center;
       padding-top: 100px;
     }
     input {
-      padding:10px; border:1px solid #0ff; border-radius:4px; background:rgba(0,0,0,0.5); color:#0ff;
+      padding: 10px; border: 1px solid #0ff; border-radius: 4px; background: rgba(0,0,0,0.5); color: #0ff;
     }
     button {
-      padding:8px 16px; margin:5px; background:rgba(0,0,0,0.5); border:1px solid #0ff; border-radius:4px; color:#0ff;
+      padding: 8px 16px; margin: 5px; background: rgba(0,0,0,0.5); border: 1px solid #0ff; border-radius: 4px; color: #0ff;
     }
-    #spinner { display:none; }
+    #spinner { display: none; }
     .toast {
       position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
       padding: 8px 12px; border-radius: 5px; background: #28a745; opacity: 0;
@@ -52,61 +52,37 @@
     <div id="keyBox" style="display:none;white-space:pre-wrap;"></div>
     <div id="errorBox" style="display:none;color:red;"></div>
     <button id="copyBtn" style="display:none;">Salin Key</button>
-    <div style="margin-top:20px;">Jumlah Pengunjung: <span id="visitorCount">Loading...</span></div>
   </div>
 
   <div id="adminPanel">
     <div><strong>Admin Panel</strong></div>
-    <div id="visitorInfo">Pengunjung: 0</div>
+    <div id="visitorInfo"></div>
     <pre id="visitorData"></pre>
     <button id="addKeyBtn">Tambah Password + Key</button>
     <button onclick="document.getElementById('adminPanel').style.display='none'">Tutup</button>
   </div>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script>
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyCldtyF1JSvBo4eBVBlYdI9pDAwM42Rb4M",
-      authDomain: "rullweb.firebaseapp.com",
-      databaseURL: "https://rullweb-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "rullweb",
-      storageBucket: "rullweb.firebasestorage.app",
-      messagingSenderId: "69407076508",
-      appId: "1:69407076508:web:2f06036ef3785c65bb7d59"
-    };
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const visitorRef = db.ref('visitors/count');
-
     let config = JSON.parse(localStorage.getItem("keyConfig")) || [
       { password: "Rull123", key: "KEY-RULL-123" }
     ];
     let visitors = JSON.parse(localStorage.getItem("visitors")) || [];
     let wrongAttempts = 0, isBlocked = false, entryCount = 0;
 
-    // Hitung visitor + update Firebase
-    visitorRef.get().then(snap => {
-      let count = snap.exists() ? snap.val() : 0;
-      count++;
-      visitorRef.set(count);
-    });
-    visitorRef.on('value', snap => {
-      document.getElementById("visitorCount").textContent = snap.val();
-    });
-
-    // Simulasi data visitor
-    function fakeVisitor() {
-      const ip = "192.168." + Math.floor(Math.random()*255) + "." + Math.floor(Math.random()*255);
-      const dev = ["Samsung","iPhone","Xiaomi","Vivo","Oppo"][Math.floor(Math.random()*5)];
-      const isl = ["Jawa","Sumatera","Kalimantan","Sulawesi","Papua"][Math.floor(Math.random()*5)];
-      const data = { ip, device: dev, pulau: isl, negara: "Indonesia" };
-      visitors.push(data);
-      localStorage.setItem("visitors", JSON.stringify(visitors));
-    }
-    fakeVisitor();
+    // Ambil info IP + lokasi via ipinfo
+    fetch('https://ipinfo.io/json?token=7004bb2c0f2233')
+      .then(res => res.json())
+      .then(data => {
+        const visitor = {
+          ip: data.ip,
+          device: navigator.userAgent,
+          pulau: data.region || "Tidak diketahui",
+          negara: data.country || "Tidak diketahui"
+        };
+        visitors.push(visitor);
+        localStorage.setItem("visitors", JSON.stringify(visitors));
+      })
+      .catch(err => console.error("Gagal ambil IP info", err));
 
     document.getElementById("generateBtn").addEventListener("click", function() {
       if (isBlocked) return;
@@ -168,7 +144,7 @@
     document.getElementById("adminBtn").addEventListener("click", function(){
       const adminPw = prompt("Masukkan password admin:");
       if (adminPw === "RullAdmin") {
-        updateAdmin();
+        updateVisitorInfo();
         document.getElementById("adminPanel").style.display = "block";
       } else {
         showToast("❌ Password admin salah!", false);
@@ -185,8 +161,8 @@
       }
     });
 
-    function updateAdmin(){
-      document.getElementById("visitorInfo").textContent = "Pengunjung: " + visitors.length;
+    function updateVisitorInfo() {
+      document.getElementById("visitorInfo").textContent = "Jumlah Pengunjung: " + visitors.length;
       document.getElementById("visitorData").textContent = visitors.map((v,i)=>
         `${i+1}. IP: ${v.ip}\nDevice: ${v.device}\nPulau: ${v.pulau}\nNegara: ${v.negara}\n`).join("\n");
     }
@@ -201,5 +177,6 @@
       setTimeout(()=>{t.style.opacity="0"; setTimeout(()=>t.remove(),300);},3000);
     }
   </script>
+
 </body>
 </html>
