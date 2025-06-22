@@ -27,26 +27,6 @@
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-    .cube {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 100px;
-      height: 100px;
-      margin: -50px 0 0 -50px;
-      background: linear-gradient(45deg, red, blue);
-      animation: rotateCube 5s linear infinite, colorShift 5s ease-in-out infinite alternate;
-      z-index: -1;
-      border-radius: 10px;
-    }
-    @keyframes rotateCube {
-      0% { transform: translate(-50%, -50%) rotate(0deg); }
-      100% { transform: translate(-50%, -50%) rotate(360deg); }
-    }
-    @keyframes colorShift {
-      from { background: linear-gradient(45deg, red, blue); }
-      to { background: linear-gradient(45deg, cyan, magenta); }
-    }
     #content {
       position: relative;
       z-index: 1;
@@ -104,7 +84,6 @@
 </head>
 <body>
   <div class="neon-bg"></div>
-  <div class="cube"></div>
 
   <button id="adminBtn" class="corner-btn">Access Admin</button>
 
