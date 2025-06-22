@@ -1,26 +1,16 @@
-<!DOCTYPE html>
-<html lang="id" class="scroll-smooth">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Buyyer Key Generator</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <div class="container">
-    <h1>RullBuyyer Key Generator</h1>
-    <p>Masukkan password untuk mendapatkan key</p>
-    <div style="position: relative; display: inline-block; width: 80%;">
-      <input type="password" id="passwordInput" placeholder="Masukkan password" style="width: 100%;" />
-      <button id="togglePwBtn" class="mini-btn">👁</button>
-    </div>
-    <button id="generateBtn">Submit & Get Key</button>
-    <div id="spinner" class="hidden"></div>
-    <div id="keyBox" class="hidden"></div>
-    <button id="toggleKeyBtn" class="hidden mini-btn">👁 Key</button>
-    <button id="copyBtn" class="hidden">Salin Key</button>
-    <div id="errorBox" class="hidden">Password salah!</div>
-  </div>
-  <script src="script.js"></script>
-</body>
-</html>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "API_KEY_KAMU",
+    authDomain: "PROJECT_ID.firebaseapp.com",
+    databaseURL: "https://PROJECT_ID-default-rtdb.firebaseio.com",
+    projectId: "PROJECT_ID",
+    storageBucket: "PROJECT_ID.appspot.com",
+    messagingSenderId: "SENDER_ID",
+    appId: "APP_ID"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+</script>
