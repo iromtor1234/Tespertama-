@@ -2,13 +2,16 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Test Neon Background</title>
+  <title>Neon RGB Background</title>
   <style>
     html, body {
       margin: 0;
+      padding: 0;
       height: 100%;
       overflow: hidden;
+      font-family: sans-serif;
     }
+
     .neon-bg {
       position: fixed;
       top: 0; left: 0;
@@ -16,15 +19,29 @@
       background: linear-gradient(270deg, red, orange, yellow, green, cyan, blue, violet, red);
       background-size: 400% 400%;
       animation: neonMove 20s linear infinite;
+      z-index: -1;
     }
+
     @keyframes neonMove {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
+
+    #content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding-top: 20%;
+      color: white;
+    }
   </style>
 </head>
 <body>
   <div class="neon-bg"></div>
+  <div id="content">
+    <h1>Halo! Ini background neon RGB 🎨</h1>
+    <p>Coba buka di browser dan lihat animasinya!</p>
+  </div>
 </body>
 </html>
