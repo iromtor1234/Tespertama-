@@ -1,110 +1,123 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Key Generator</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Website Key + Admin</title>
   <style>
-    html, body {
-      margin: 0; padding: 0;
-      width: 100%; height: 100%;
-      font-family: sans-serif;
-      color: #fff;
+    body {
+      margin:0;
       background: url('https://opengameart.org/sites/default/files/background_40.png') no-repeat center center fixed;
       background-size: cover;
+      font-family: sans-serif;
+      color: #0ff;
     }
-
     #adminBtn {
-      position: fixed;
-      top: 10px; right: 10px;
-      padding: 8px 12px;
-      background: rgba(0,0,0,0.5);
-      border: 1px solid #0ff;
-      color: #0ff;
-      border-radius: 4px;
-      text-shadow: 0 0 5px #0ff;
+      position: fixed; top:10px; right:10px;
+      padding:5px 10px; background:rgba(0,0,0,0.5); border:1px solid #0ff; border-radius:4px;
     }
-
     .container {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
       text-align: center;
-      background: rgba(0,0,0,0.5);
-      padding: 20px;
-      border-radius: 10px;
+      padding-top: 100px;
     }
-
     input {
-      padding: 10px;
-      width: 250px;
-      background: rgba(0,0,0,0.5);
-      border: 1px solid #0ff;
-      border-radius: 4px;
-      color: #0ff;
-      text-align: center;
+      padding:10px; border:1px solid #0ff; border-radius:4px; background:rgba(0,0,0,0.5); color:#0ff;
     }
-
     button {
-      padding: 8px 16px;
-      margin: 5px;
-      background: rgba(0,0,0,0.5);
-      border: 1px solid #0ff;
-      color: #0ff;
-      border-radius: 4px;
-      text-shadow: 0 0 5px #0ff;
+      padding:8px 16px; margin:5px; background:rgba(0,0,0,0.5); border:1px solid #0ff; border-radius:4px; color:#0ff;
     }
-
+    #spinner { display:none; }
     .toast {
-      position: fixed;
-      bottom: 20px; left: 50%;
-      transform: translateX(-50%);
-      padding: 8px 12px;
-      border-radius: 5px;
-      background: #28a745;
-      opacity: 0;
-      color: white;
-      font-size: 12px;
-      transition: opacity 0.3s ease;
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      padding: 8px 12px; border-radius: 5px; background: #28a745; opacity: 0;
+      transition: opacity 0.3s ease; font-size: 12px;
     }
+    #adminPanel {
+      position: fixed; top: 50px; right: 10px;
+      background: rgba(0,0,0,0.8); padding: 10px; border-radius: 6px; display: none; max-width: 300px;
+    }
+    #adminPanel pre { font-size: 12px; white-space: pre-wrap; word-wrap: break-word; }
   </style>
 </head>
 <body>
 
-  <button id="adminBtn">Admin Access</button>
+  <button id="adminBtn">Access Admin</button>
 
   <div class="container">
     <input type="password" id="passwordInput" placeholder="Masukkan Password" />
     <button id="togglePwBtn">👁</button><br>
     <button id="generateBtn">Get Key</button>
     <button id="buyKeyBtn">Buy Key</button>
-    <div id="spinner" style="display:none;">⏳ Loading...</div>
+    <div id="spinner">⏳ Loading...</div>
     <div id="keyBox" style="display:none;white-space:pre-wrap;"></div>
     <div id="errorBox" style="display:none;color:red;"></div>
     <button id="copyBtn" style="display:none;">Salin Key</button>
+    <div style="margin-top:20px;">Jumlah Pengunjung: <span id="visitorCount">Loading...</span></div>
   </div>
 
+  <div id="adminPanel">
+    <div><strong>Admin Panel</strong></div>
+    <div id="visitorInfo">Pengunjung: 0</div>
+    <pre id="visitorData"></pre>
+    <button id="addKeyBtn">Tambah Password + Key</button>
+    <button onclick="document.getElementById('adminPanel').style.display='none'">Tutup</button>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCldtyF1JSvBo4eBVBlYdI9pDAwM42Rb4M",
+      authDomain: "rullweb.firebaseapp.com",
+      databaseURL: "https://rullweb-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "rullweb",
+      storageBucket: "rullweb.firebasestorage.app",
+      messagingSenderId: "69407076508",
+      appId: "1:69407076508:web:2f06036ef3785c65bb7d59"
+    };
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const visitorRef = db.ref('visitors/count');
+
     let config = JSON.parse(localStorage.getItem("keyConfig")) || [
       { password: "Rull123", key: "KEY-RULL-123" }
     ];
+    let visitors = JSON.parse(localStorage.getItem("visitors")) || [];
     let wrongAttempts = 0, isBlocked = false, entryCount = 0;
 
-    document.getElementById("generateBtn").addEventListener("click", function(){
-      if(isBlocked) return;
+    // Hitung visitor + update Firebase
+    visitorRef.get().then(snap => {
+      let count = snap.exists() ? snap.val() : 0;
+      count++;
+      visitorRef.set(count);
+    });
+    visitorRef.on('value', snap => {
+      document.getElementById("visitorCount").textContent = snap.val();
+    });
+
+    // Simulasi data visitor
+    function fakeVisitor() {
+      const ip = "192.168." + Math.floor(Math.random()*255) + "." + Math.floor(Math.random()*255);
+      const dev = ["Samsung","iPhone","Xiaomi","Vivo","Oppo"][Math.floor(Math.random()*5)];
+      const isl = ["Jawa","Sumatera","Kalimantan","Sulawesi","Papua"][Math.floor(Math.random()*5)];
+      const data = { ip, device: dev, pulau: isl, negara: "Indonesia" };
+      visitors.push(data);
+      localStorage.setItem("visitors", JSON.stringify(visitors));
+    }
+    fakeVisitor();
+
+    document.getElementById("generateBtn").addEventListener("click", function() {
+      if (isBlocked) return;
       const pw = document.getElementById("passwordInput").value.trim();
       const spinner = document.getElementById("spinner");
       const keyBox = document.getElementById("keyBox");
       const errorBox = document.getElementById("errorBox");
       const copyBtn = document.getElementById("copyBtn");
-
-      keyBox.style.display = "none";
-      errorBox.style.display = "none";
-      copyBtn.style.display = "none";
+      keyBox.style.display = "none"; errorBox.style.display = "none"; copyBtn.style.display = "none";
       spinner.style.display = "inline";
-
       const match = config.find(c => c.password === pw);
-
       setTimeout(() => {
         spinner.style.display = "none";
         if (match) {
@@ -114,6 +127,7 @@
           copyBtn.style.display = "inline";
           copyBtn.dataset.key = match.key;
           showToast("✅ Key ditemukan!", true);
+          wrongAttempts = 0;
         } else {
           wrongAttempts++;
           errorBox.textContent = "❌ Password salah!";
@@ -125,11 +139,8 @@
             this.disabled = true;
             document.getElementById("passwordInput").disabled = true;
             setTimeout(() => {
-              isBlocked = false;
-              wrongAttempts = 0;
-              errorBox.style.display = "none";
-              this.disabled = false;
-              document.getElementById("passwordInput").disabled = false;
+              isBlocked = false; wrongAttempts = 0; errorBox.style.display = "none";
+              this.disabled = false; document.getElementById("passwordInput").disabled = false;
             }, 10000);
           }
         }
@@ -148,38 +159,46 @@
       window.open("https://t.me/ARullReal", "_blank");
     });
 
+    document.getElementById("togglePwBtn").addEventListener("click", function(){
+      const pw = document.getElementById("passwordInput");
+      pw.type = (pw.type === "password") ? "text" : "password";
+      this.textContent = (pw.type === "password") ? "👁" : "🙈";
+    });
+
     document.getElementById("adminBtn").addEventListener("click", function(){
-      const newPw = prompt("Masukkan password baru:");
-      const newKey = prompt("Masukkan key baru:");
+      const adminPw = prompt("Masukkan password admin:");
+      if (adminPw === "RullAdmin") {
+        updateAdmin();
+        document.getElementById("adminPanel").style.display = "block";
+      } else {
+        showToast("❌ Password admin salah!", false);
+      }
+    });
+
+    document.getElementById("addKeyBtn").addEventListener("click", function(){
+      const newPw = prompt("Password baru:");
+      const newKey = prompt("Key baru:");
       if(newPw && newKey){
-        config.push({password: newPw, key: newKey});
+        config.push({password:newPw,key:newKey});
         localStorage.setItem("keyConfig", JSON.stringify(config));
         showToast("✅ Password & Key ditambah!", true);
       }
     });
 
-    document.getElementById("togglePwBtn").addEventListener("click", function(){
-      const pwInput = document.getElementById("passwordInput");
-      if (pwInput.type === "password") {
-        pwInput.type = "text";
-        this.textContent = "🙈";
-      } else {
-        pwInput.type = "password";
-        this.textContent = "👁";
-      }
-    });
+    function updateAdmin(){
+      document.getElementById("visitorInfo").textContent = "Pengunjung: " + visitors.length;
+      document.getElementById("visitorData").textContent = visitors.map((v,i)=>
+        `${i+1}. IP: ${v.ip}\nDevice: ${v.device}\nPulau: ${v.pulau}\nNegara: ${v.negara}\n`).join("\n");
+    }
 
-    function showToast(msg, success){
+    function showToast(msg, succ){
       const t = document.createElement("div");
-      t.textContent = msg;
       t.className = "toast";
-      t.style.background = success ? "#28a745" : "#dc3545";
+      t.textContent = msg;
+      t.style.background = succ ? "#28a745" : "#dc3545";
       document.body.appendChild(t);
-      setTimeout(() => t.style.opacity = "1", 100);
-      setTimeout(() => {
-        t.style.opacity = "0";
-        setTimeout(() => t.remove(), 300);
-      }, 3000);
+      setTimeout(()=>t.style.opacity="1",100);
+      setTimeout(()=>{t.style.opacity="0"; setTimeout(()=>t.remove(),300);},3000);
     }
   </script>
 </body>
