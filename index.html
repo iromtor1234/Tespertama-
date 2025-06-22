@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Key Generator Pemandangan</title>
+  <title>Key Generator Neon Malam</title>
   <style>
     html, body {
       margin: 0; padding: 0;
@@ -14,18 +14,21 @@
       background: black;
     }
 
-    #bg {
+    body::before {
+      content: '';
       position: fixed;
+      top: 0; left: 0;
       width: 200%;
       height: 100%;
-      background: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?crop=entropy&cs=tinysrgb&fit=crop&w=1600&q=80') repeat-x bottom center / cover;
-      animation: bgMove 60s linear infinite;
+      background: linear-gradient(90deg, #001133, #002244, #001133);
+      background-size: 200% 100%;
+      animation: bgMove 30s linear infinite;
       z-index: -2;
     }
 
     @keyframes bgMove {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
+      0% { background-position: 0 0; }
+      100% { background-position: 100% 0; }
     }
 
     #adminBtn {
@@ -84,9 +87,9 @@
       width: 2px;
       height: 2px;
       background: white;
-      box-shadow: 0 0 8px white;
+      box-shadow: 0 0 10px white;
       opacity: 0.8;
-      animation: fall 1.5s linear;
+      animation: fall 2s linear;
     }
 
     @keyframes fall {
@@ -96,7 +99,6 @@
   </style>
 </head>
 <body>
-  <div id="bg"></div>
 
   <button id="adminBtn">Admin Access</button>
 
@@ -216,8 +218,8 @@
       star.style.top = Math.random() * window.innerHeight * 0.5 + "px";
       star.style.left = Math.random() * window.innerWidth + "px";
       document.body.appendChild(star);
-      setTimeout(() => star.remove(), 1500);
-    }, 3000);
+      setTimeout(() => star.remove(), 2000);
+    }, 2000);
   </script>
 </body>
 </html>
