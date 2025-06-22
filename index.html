@@ -2,13 +2,13 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Key Generator</title>
+  <title>Key Generator + Tracking</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="neon-bg"></div>
 
-  <button id="adminBtn" class="admin-btn">Admin Access</button>
+  <button id="whoSeeBtn" class="corner-btn">WHO SEE</button>
 
   <div id="content">
     <h1>Key Generator</h1>
@@ -16,27 +16,18 @@
     <button id="togglePwBtn">👁</button>
     <button id="generateBtn">Get Key</button>
     <button id="buyKeyBtn">BUY KEY</button>
-    <div id="spinner">⏳ Loading...</div>
+    <div id="spinner" style="display:none;">⏳ Loading...</div>
     <div id="keyBox" style="display:none;"></div>
-    <div id="errorBox" style="display:none;color:red;"></div>
+    <div id="errorBox" style="display:none; color:red;"></div>
     <button id="copyBtn" style="display:none;">Salin Key</button>
     <button id="toggleKeyBtn" style="display:none;">🙈 Hide</button>
   </div>
 
-  <div id="adminModal">
-    <div id="adminPanel">
-      <h2>Admin Panel</h2>
-      <input type="password" id="adminPassInput" placeholder="Admin password">
-      <button id="checkAdminPass">Login Admin</button>
-      <div id="adminContent">
-        <h3>Tambah/Ubah Key</h3>
-        <input id="newPw" placeholder="Password baru">
-        <input id="newKey" placeholder="Key baru">
-        <button id="addKeyBtn">Tambah/Ubah</button>
-        <h3>Tracking Data</h3>
-        <pre id="trackingData"></pre>
-        <button onclick="closeAdmin()">Tutup</button>
-      </div>
+  <div id="whoSeeModal">
+    <div id="whoSeeContent">
+      <h2>WHO SEE</h2>
+      <pre id="trackingInfo">Loading...</pre>
+      <button onclick="closeWhoSee()">Tutup</button>
     </div>
   </div>
 
