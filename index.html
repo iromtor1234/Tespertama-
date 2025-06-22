@@ -2,35 +2,29 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Key Generator + Tracking</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>Test Neon Background</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+    .neon-bg {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: linear-gradient(270deg, red, orange, yellow, green, cyan, blue, violet, red);
+      background-size: 400% 400%;
+      animation: neonMove 20s linear infinite;
+    }
+    @keyframes neonMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+  </style>
 </head>
 <body>
   <div class="neon-bg"></div>
-
-  <button id="whoSeeBtn" class="corner-btn">WHO SEE</button>
-
-  <div id="content">
-    <h1>Key Generator</h1>
-    <input type="password" id="passwordInput" placeholder="Masukkan password">
-    <button id="togglePwBtn">👁</button>
-    <button id="generateBtn">Get Key</button>
-    <button id="buyKeyBtn">BUY KEY</button>
-    <div id="spinner" style="display:none;">⏳ Loading...</div>
-    <div id="keyBox" style="display:none;"></div>
-    <div id="errorBox" style="display:none; color:red;"></div>
-    <button id="copyBtn" style="display:none;">Salin Key</button>
-    <button id="toggleKeyBtn" style="display:none;">🙈 Hide</button>
-  </div>
-
-  <div id="whoSeeModal">
-    <div id="whoSeeContent">
-      <h2>WHO SEE</h2>
-      <pre id="trackingInfo">Loading...</pre>
-      <button onclick="closeWhoSee()">Tutup</button>
-    </div>
-  </div>
-
-  <script src="script.js"></script>
 </body>
 </html>
