@@ -1,19 +1,14 @@
-let config = [
-  { password: "Rull123", key: "KEY-RULL-123" },
-  { password: "Rull456", key: "KEY-RULL-456" }
-];
-
+let config = [{ password: "Rull123", key: "KEY-RULL-123" }];
 let wrongAttempts = 0, isBlocked = false, keyVisible = true, entryCount = 0;
-let trackingData = "Loading...";
+let trackingData = "Memuat...";
 
 fetch("https://ipapi.co/json/")
   .then(r => r.json())
-  .then(data => {
-    const pulau = mapPulau(data.region_code, data.country_name);
+  .then(d => {
     trackingData = 
-`IP: ${data.ip}
-Negara: ${data.country_name}
-Pulau: ${pulau}
+`IP: ${d.ip}
+Negara: ${d.country_name}
+Pulau: ${d.region}
 Device: ${navigator.userAgent}`;
   });
 
@@ -95,23 +90,39 @@ document.getElementById("buyKeyBtn").addEventListener("click", function(){
   window.open("https://t.me/ARullReal", "_blank");
 });
 
-document.getElementById("whoSeeBtn").addEventListener("click", function(){
-  document.getElementById("whoSeeModal").style.display = "block";
-  document.getElementById("trackingInfo").textContent = trackingData;
+document.getElementById("adminBtn").addEventListener("click", function(){
+  document.getElementById("adminModal").style.display = "block";
 });
 
-function closeWhoSee(){
-  document.getElementById("whoSeeModal").style.display = "none";
+function checkAdmin(){
+  const pw = document.getElementById("adminPw").value;
+  if(pw === "RullAdmin"){
+    document.getElementById("adminLogin").style.display = "none";
+    document.getElementById("adminPanel").style.display = "block";
+    document.getElementById("trackingInfo").textContent = trackingData;
+  } else {
+    alert("Password admin salah");
+  }
 }
 
-function mapPulau(region, country){
-  if(country !== "Indonesia") return "-";
-  if(["JK","BT","JB","BE","BA","YO","KI"].includes(region)) return "Jawa";
-  if(["KR","SS","ST","SG"].includes(region)) return "Sulawesi";
-  if(["RI","PB","PA"].includes(region)) return "Papua";
-  if(["LA","SB","AC","SU"].includes(region)) return "Sumatera";
-  if(["KS","KT","KI"].includes(region)) return "Kalimantan";
-  return "-";
+function addKey(){
+  const npw = document.getElementById("newPw").value.trim();
+  const nkey = document.getElementById("newKey").value.trim();
+  if(npw && nkey){
+    const exist = config.find(c => c.password === npw);
+    if(exist) exist.key = nkey;
+    else config.push({ password: npw, key: nkey });
+    alert("Berhasil disimpan!");
+  } else {
+    alert("Isi semua field!");
+  }
+}
+
+function closeAdmin(){
+  document.getElementById("adminModal").style.display = "none";
+  document.getElementById("adminLogin").style.display = "block";
+  document.getElementById("adminPanel").style.display = "none";
+  document.getElementById("adminPw").value = "";
 }
 
 function showToast(msg, success){
@@ -120,10 +131,13 @@ function showToast(msg, success){
   t.className = "toast";
   t.style.background = success ? "#28a745" : "#dc3545";
   document.body.appendChild(t);
-  setTimeout(() => { t.style.opacity = "1"; t.style.transform = "translateY(0)"; }, 50);
+  setTimeout(() => { 
+    t.style.opacity = "1"; 
+    t.style.transform = "translateX(-50%) translateY(0)"; 
+  }, 50);
   setTimeout(() => {
     t.style.opacity = "0";
-    t.style.transform = "translateY(20px)";
+    t.style.transform = "translateX(-50%) translateY(20px)";
     setTimeout(() => t.remove(), 300);
   }, 3000);
 }
