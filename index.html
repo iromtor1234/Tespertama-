@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Key Generator + Admin Access</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Key Generator Mobile</title>
   <style>
     html, body {
       margin: 0;
@@ -10,6 +11,7 @@
       height: 100%;
       overflow: hidden;
       font-family: sans-serif;
+      background: #000;
     }
     .neon-bg {
       position: fixed;
@@ -17,32 +19,55 @@
       width: 100%; height: 100%;
       background: linear-gradient(270deg, red, orange, yellow, green, cyan, blue, violet, red);
       background-size: 400% 400%;
-      animation: neonMove 20s linear infinite;
-      z-index: -1;
+      animation: neonMove 15s linear infinite;
+      z-index: -2;
     }
     @keyframes neonMove {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
+    .cube {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100px;
+      height: 100px;
+      margin: -50px 0 0 -50px;
+      background: linear-gradient(45deg, red, blue);
+      animation: rotateCube 5s linear infinite, colorShift 5s ease-in-out infinite alternate;
+      z-index: -1;
+      border-radius: 10px;
+    }
+    @keyframes rotateCube {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+    @keyframes colorShift {
+      from { background: linear-gradient(45deg, red, blue); }
+      to { background: linear-gradient(45deg, cyan, magenta); }
+    }
     #content {
       position: relative;
       z-index: 1;
       text-align: center;
-      margin-top: 15%;
+      padding-top: 40%;
       color: white;
     }
     input, button {
       padding: 10px;
       margin: 5px;
-      font-size: 16px;
+      font-size: 14px;
+      width: 80%;
+      max-width: 300px;
     }
     .corner-btn {
       position: fixed;
       top: 10px;
       right: 10px;
       z-index: 2;
-      padding: 8px 12px;
+      padding: 5px 10px;
+      font-size: 12px;
     }
     #adminModal {
       display: none;
@@ -53,82 +78,78 @@
       color: white;
       padding: 20px;
       z-index: 10;
-      overflow: auto;
+      overflow-y: auto;
     }
     #adminContent {
-      max-width: 500px;
+      max-width: 90%;
       margin: auto;
       background: rgba(0,0,0,0.5);
-      padding: 20px;
+      padding: 15px;
       border-radius: 8px;
     }
     .toast {
       position: fixed;
       bottom: 20px;
-      right: 20px;
-      padding: 10px 15px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #28a745;
+      padding: 8px 12px;
       border-radius: 5px;
-      color: #fff;
       opacity: 0;
+      color: white;
       transition: all 0.3s ease;
-      transform: translateY(20px);
+      font-size: 12px;
     }
   </style>
 </head>
 <body>
   <div class="neon-bg"></div>
+  <div class="cube"></div>
 
   <button id="adminBtn" class="corner-btn">Access Admin</button>
 
   <div id="content">
-    <h1>Key Generator</h1>
-    <input type="password" id="passwordInput" placeholder="Masukkan password">
-    <button id="togglePwBtn">👁</button>
+    <input type="password" id="passwordInput" placeholder="Masukkan password" />
+    <button id="togglePwBtn">👁</button><br />
     <button id="generateBtn">Get Key</button>
-    <button id="buyKeyBtn">BUY KEY</button>
-    <div id="spinner" style="display:none;">⏳ Loading...</div>
-    <div id="keyBox" style="display:none;"></div>
-    <div id="errorBox" style="display:none; color:red;"></div>
-    <button id="copyBtn" style="display:none;">Salin Key</button>
-    <button id="toggleKeyBtn" style="display:none;">🙈 Hide</button>
+    <button id="buyKeyBtn">BUY KEY</button><br />
+    <div id="spinner" style="display: none;">⏳ Loading...</div>
+    <div id="keyBox" style="display: none; white-space: pre-wrap;"></div>
+    <div id="errorBox" style="display: none; color: red;"></div>
+    <button id="copyBtn" style="display: none;">Salin Key</button>
+    <button id="toggleKeyBtn" style="display: none;">🙈 Hide</button>
   </div>
 
   <div id="adminModal">
     <div id="adminContent">
-      <h2>Admin Access</h2>
+      <h3>Admin Access</h3>
       <div id="adminLogin">
-        <input type="password" id="adminPw" placeholder="Admin Password">
+        <input type="password" id="adminPw" placeholder="Admin Password" />
         <button onclick="checkAdmin()">Login</button>
       </div>
-      <div id="adminPanel" style="display:none;">
-        <h3>Tambah/Ubah Password & Key</h3>
-        <input id="newPw" placeholder="Password baru">
-        <input id="newKey" placeholder="Key baru">
-        <button onclick="addKey()">Simpan</button>
-        <h3>Tracking Info</h3>
-        <pre id="trackingInfo">Loading...</pre>
+      <div id="adminPanel" style="display: none;">
+        <input id="newPw" placeholder="Password baru" /><br />
+        <input id="newKey" placeholder="Key baru" /><br />
+        <button onclick="addKey()">Simpan</button><br /><br />
+        <pre id="trackingInfo">Memuat...</pre>
         <button onclick="closeAdmin()">Tutup</button>
       </div>
     </div>
   </div>
 
   <script>
-    let config = [
-      { password: "Rull123", key: "KEY-RULL-123" }
-    ];
+    let config = [{ password: "Rull123", key: "KEY-RULL-123" }];
     let wrongAttempts = 0, isBlocked = false, keyVisible = true, entryCount = 0;
-    let trackingData = "Loading...";
+    let trackingData = "Memuat...";
 
-    // Tracking
     fetch("https://ipapi.co/json/")
       .then(r => r.json())
-      .then(data => {
-        const pulau = mapPulau(data.region_code, data.country_name);
+      .then(d => {
         trackingData = 
-\`IP: \${data.ip}
-Negara: \${data.country_name}
-Pulau: \${pulau}
-Device: \${navigator.userAgent}\`;
+`IP: ${d.ip}
+Negara: ${d.country_name}
+Pulau: ${d.region}
+Device: ${navigator.userAgent}`;
       });
 
     document.getElementById("generateBtn").addEventListener("click", function(){
@@ -151,7 +172,7 @@ Device: \${navigator.userAgent}\`;
         spinner.style.display = "none";
         if(match){
           wrongAttempts = 0; entryCount++;
-          keyBox.textContent = \`\${entryCount}. Password: \${pw}\\nGet Key: \${match.key}\`;
+          keyBox.textContent = `${entryCount}. Password: ${pw}\nGet Key: ${match.key}`;
           keyBox.style.display = "block";
           copyBtn.style.display = "inline";
           toggleKeyBtn.style.display = "inline";
@@ -244,26 +265,19 @@ Device: \${navigator.userAgent}\`;
       document.getElementById("adminPw").value = "";
     }
 
-    function mapPulau(region, country){
-      if(country !== "Indonesia") return "-";
-      if(["JK","BT","JB","BE","BA","YO","KI"].includes(region)) return "Jawa";
-      if(["KR","SS","ST","SG"].includes(region)) return "Sulawesi";
-      if(["RI","PB","PA"].includes(region)) return "Papua";
-      if(["LA","SB","AC","SU"].includes(region)) return "Sumatera";
-      if(["KS","KT","KI"].includes(region)) return "Kalimantan";
-      return "-";
-    }
-
     function showToast(msg, success){
       const t = document.createElement("div");
       t.textContent = msg;
       t.className = "toast";
       t.style.background = success ? "#28a745" : "#dc3545";
       document.body.appendChild(t);
-      setTimeout(() => { t.style.opacity = "1"; t.style.transform = "translateY(0)"; }, 50);
+      setTimeout(() => { 
+        t.style.opacity = "1"; 
+        t.style.transform = "translateX(-50%) translateY(0)"; 
+      }, 50);
       setTimeout(() => {
         t.style.opacity = "0";
-        t.style.transform = "translateY(20px)";
+        t.style.transform = "translateX(-50%) translateY(20px)";
         setTimeout(() => t.remove(), 300);
       }, 3000);
     }
