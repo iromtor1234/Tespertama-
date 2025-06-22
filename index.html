@@ -2,44 +2,87 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Visitor Counter - RullWeb</title>
-</head>
-<body style="font-family:sans-serif; text-align:center; padding:50px;">
-
-  <h1>Selamat Datang di RullWeb!</h1>
-  <p>Jumlah kunjungan: <span id="visitorCount">0</span></p>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Get Key + Visitor Counter</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #0f172a;
+      color: white;
+      text-align: center;
+      padding: 40px;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 5px;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Masukkan Password untuk Get Key</h2>
+  <input type="password" id="passwordInput" placeholder="Masukkan password">
+  <button onclick="checkPassword()">Get Key</button>
+  <div id="result"></div>
+
+  <p>Jumlah Kunjungan: <span id="visitorCount">0</span></p>
+
   <script>
-    // Ganti config ini dengan data asli dari Firebase kamu (sementara placeholder)
+    // Konfigurasimu
     const firebaseConfig = {
-      apiKey: "ISI_API_KEY_KAMU",
+      apiKey: "AIzaSyCldtyF1JSvBo4eBVBlYdI9pDAwM42Rb4M",
       authDomain: "rullweb.firebaseapp.com",
       databaseURL: "https://rullweb-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "rullweb",
-      storageBucket: "rullweb.appspot.com",
-      messagingSenderId: "ISI_SENDER_ID_KAMU",
-      appId: "ISI_APP_ID_KAMU"
+      storageBucket: "rullweb.firebasestorage.app",
+      messagingSenderId: "69407076508",
+      appId: "1:69407076508:web:2f06036ef3785c65bb7d59"
     };
 
-    // Inisialisasi Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Referensi ke visitor count
+    // Hitung kunjungan
     const visitorRef = db.ref("visitors/count");
-
-    // Tambahkan 1 setiap halaman dibuka
-    visitorRef.transaction(current => {
-      return (current || 0) + 1;
-    });
-
-    // Update realtime tampilan visitor
+    visitorRef.transaction(current => (current || 0) + 1);
     visitorRef.on("value", snapshot => {
       document.getElementById("visitorCount").textContent = snapshot.val();
     });
+
+    // Cek password
+    function checkPassword() {
+      const input = document.getElementById("passwordInput").value;
+      const passRef = db.ref("password");
+
+      passRef.once("value").then(snapshot => {
+        const realPass = snapshot.val();
+        if (input === realPass) {
+          document.getElementById("result").innerHTML = `
+            ✅ Password benar!<br>
+            Key: <b>Rull-KEY-12345</b><br>
+            <button onclick="copyKey('Rull-KEY-12345')">Salin Key</button>
+          `;
+        } else {
+          document.getElementById("result").innerHTML = "❌ Password salah!";
+        }
+      }).catch(err => {
+        console.error("Gagal ambil password:", err);
+        document.getElementById("result").textContent = "Terjadi kesalahan.";
+      });
+    }
+
+    // Salin ke clipboard
+    function copyKey(key) {
+      navigator.clipboard.writeText(key).then(() => {
+        alert("Key disalin!");
+      });
+    }
   </script>
 </body>
 </html>
