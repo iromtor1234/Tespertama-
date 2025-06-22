@@ -6,13 +6,45 @@
   <title>Key Generator + Admin + Tracking</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: linear-gradient(135deg, #00f, #0ff, #00f);
+      background-size: 400% 400%;
+      animation: neonMove 10s ease infinite;
+      color: #fff;
+    }
+    @keyframes neonMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    input, button {
+      padding: 10px;
+      margin: 5px;
+      border: none;
+      border-radius: 5px;
+    }
+    #adminPanel {
+      position: fixed;
+      top: 50px;
+      right: 10px;
+      background: rgba(0,0,0,0.7);
+      padding: 10px;
+      border-radius: 6px;
+      max-height: 90%;
+      overflow: auto;
+      display: none;
+    }
+  </style>
 </head>
-<body style="background:#000;color:#0ff;font-family:sans-serif;">
+<body>
 
 <button id="adminBtn" style="position:fixed;top:10px;right:10px;">Access Admin</button>
 
 <div style="text-align:center;margin-top:100px;">
-  <input type="password" id="passwordInput" placeholder="Masukkan Password" style="padding:10px;">
+  <input type="password" id="passwordInput" placeholder="Masukkan Password">
   <button id="generateBtn">Get Key</button>
   <button id="buyKeyBtn">Buy Key</button>
   <div id="spinner" style="display:none;">⏳ Loading...</div>
@@ -21,7 +53,7 @@
   <button id="copyBtn" style="display:none;">Salin Key</button>
 </div>
 
-<div id="adminPanel" style="display:none;position:fixed;top:50px;right:10px;background:#111;padding:10px;border-radius:6px;max-height:90%;overflow:auto;">
+<div id="adminPanel">
   <div><strong>Admin Panel</strong></div>
   <div id="visitorInfo"></div>
   <pre id="visitorData"></pre>
@@ -48,32 +80,19 @@ let wrongAttempts = 0;
 let isBlocked = false;
 let entryCount = 0;
 
-// Tracking
+// Tracking visitor (disimpan, hanya admin bisa lihat)
 fetch('https://ipinfo.io/json?token=7004bb2c0f2233')
 .then(res => res.json())
 .then(ipData => {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(pos => {
-      saveVisitor(ipData, pos.coords.latitude, pos.coords.longitude);
-    }, () => {
-      saveVisitor(ipData, "Tidak diketahui", "Tidak diketahui");
-    });
-  } else {
-    saveVisitor(ipData, "Tidak diketahui", "Tidak diketahui");
-  }
-});
-
-function saveVisitor(ipData, lat, lon) {
   const visitor = {
     ip: ipData.ip,
     device: navigator.userAgent,
-    pulau: ipData.region || "Tidak diketahui",
-    negara: ipData.country || "Tidak diketahui",
-    lat, lon,
+    region: ipData.region || "Tidak diketahui",
+    country: ipData.country || "Tidak diketahui",
     waktu: new Date().toISOString()
   };
   db.ref("visitors").push(visitor);
-}
+});
 
 // Get Key
 document.getElementById("generateBtn").addEventListener("click", function(){
@@ -104,13 +123,13 @@ document.getElementById("generateBtn").addEventListener("click", function(){
   });
 });
 
-// Copy
+// Copy Key
 document.getElementById("copyBtn").addEventListener("click", function(){
   const text = document.getElementById("keyBox").textContent;
   navigator.clipboard.writeText(text).then(() => alert("✅ Key disalin!"));
 });
 
-// Buy
+// Buy Key
 document.getElementById("buyKeyBtn").addEventListener("click", function(){
   window.open("https://t.me/ARullReal", "_blank");
 });
@@ -146,7 +165,7 @@ function loadVisitors(){
     const data = snap.val() || {};
     document.getElementById("visitorInfo").textContent = `Jumlah pengunjung: ${Object.keys(data).length}`;
     document.getElementById("visitorData").textContent = Object.values(data).map((v,i)=>
-      `${i+1}. IP: ${v.ip}\nDevice: ${v.device}\nPulau: ${v.pulau}\nNegara: ${v.negara}\nKoordinat: ${v.lat}, ${v.lon}\nWaktu: ${v.waktu}\n`
+      `${i+1}. IP: ${v.ip}\nDevice: ${v.device}\nRegion: ${v.region}\nNegara: ${v.country}\nWaktu: ${v.waktu}\n`
     ).join("\n");
   });
 }
@@ -204,5 +223,6 @@ function disableInputs(dis){
   document.getElementById("passwordInput").disabled = dis;
 }
 </script>
+
 </body>
 </html>
