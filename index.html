@@ -3,22 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Key Generator + Admin + Tracking</title>
+  <title>Key Generator + Admin</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
   <style>
     body {
       margin: 0;
       font-family: sans-serif;
-      background: linear-gradient(135deg, #00f, #0ff, #00f);
-      background-size: 400% 400%;
-      animation: neonMove 10s ease infinite;
+      background: url('https://i.ibb.co/pJ7g4pG/pixel-mountain.jpg') center/cover no-repeat fixed;
       color: #fff;
-    }
-    @keyframes neonMove {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
     }
     input, button {
       padding: 10px;
@@ -45,6 +38,7 @@
 
 <div style="text-align:center;margin-top:100px;">
   <input type="password" id="passwordInput" placeholder="Masukkan Password">
+  <button id="togglePwBtn">👁</button>
   <button id="generateBtn">Get Key</button>
   <button id="buyKeyBtn">Buy Key</button>
   <div id="spinner" style="display:none;">⏳ Loading...</div>
@@ -55,9 +49,6 @@
 
 <div id="adminPanel">
   <div><strong>Admin Panel</strong></div>
-  <div id="visitorInfo"></div>
-  <pre id="visitorData"></pre>
-  <hr/>
   <div id="keyList"></div>
   <button id="addKeyBtn">Tambah Password + Key</button>
   <button onclick="document.getElementById('adminPanel').style.display='none'">Tutup</button>
@@ -79,20 +70,6 @@ const db = firebase.database();
 let wrongAttempts = 0;
 let isBlocked = false;
 let entryCount = 0;
-
-// Tracking visitor (disimpan, hanya admin bisa lihat)
-fetch('https://ipinfo.io/json?token=7004bb2c0f2233')
-.then(res => res.json())
-.then(ipData => {
-  const visitor = {
-    ip: ipData.ip,
-    device: navigator.userAgent,
-    region: ipData.region || "Tidak diketahui",
-    country: ipData.country || "Tidak diketahui",
-    waktu: new Date().toISOString()
-  };
-  db.ref("visitors").push(visitor);
-});
 
 // Get Key
 document.getElementById("generateBtn").addEventListener("click", function(){
@@ -134,6 +111,18 @@ document.getElementById("buyKeyBtn").addEventListener("click", function(){
   window.open("https://t.me/ARullReal", "_blank");
 });
 
+// Toggle password visibility (sensor text)
+document.getElementById("togglePwBtn").addEventListener("click", function(){
+  const pwInput = document.getElementById("passwordInput");
+  if (pwInput.type === "password") {
+    pwInput.type = "text";
+    this.textContent = "🙈";
+  } else {
+    pwInput.type = "password";
+    this.textContent = "👁";
+  }
+});
+
 // Admin Access
 document.getElementById("adminBtn").addEventListener("click", function(){
   const pw = prompt("Masukkan password admin:");
@@ -156,18 +145,7 @@ document.getElementById("addKeyBtn").addEventListener("click", function(){
 
 function showAdminPanel(){
   document.getElementById("adminPanel").style.display = "block";
-  loadVisitors();
   loadKeys();
-}
-
-function loadVisitors(){
-  db.ref("visitors").once("value", snap => {
-    const data = snap.val() || {};
-    document.getElementById("visitorInfo").textContent = `Jumlah pengunjung: ${Object.keys(data).length}`;
-    document.getElementById("visitorData").textContent = Object.values(data).map((v,i)=>
-      `${i+1}. IP: ${v.ip}\nDevice: ${v.device}\nRegion: ${v.region}\nNegara: ${v.country}\nWaktu: ${v.waktu}\n`
-    ).join("\n");
-  });
 }
 
 function loadKeys(){
