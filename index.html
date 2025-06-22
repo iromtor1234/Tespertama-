@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Key Generator Mobile</title>
+  <title>Key Generator Neon</title>
   <style>
     html, body {
       margin: 0;
@@ -11,118 +11,129 @@
       height: 100%;
       overflow: hidden;
       font-family: sans-serif;
+      background: linear-gradient(270deg, #ff00cc, #3333ff, #00ffcc, #ff0066);
+      background-size: 800% 800%;
+      animation: neonBg 15s ease infinite;
     }
-    body {
-      background: linear-gradient(270deg, red, orange, yellow, green, cyan, blue, violet, red);
-      background-size: 400% 400%;
-      animation: neonMove 15s linear infinite;
-    }
-    @keyframes neonMove {
+
+    @keyframes neonBg {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-    #content {
-      position: relative;
-      z-index: 1;
-      text-align: center;
-      padding-top: 40%;
-      color: white;
+
+    .cube {
+      width: 100px;
+      height: 100px;
+      position: absolute;
+      top: 30%;
+      left: 50%;
+      transform-style: preserve-3d;
+      transform: translate(-50%, -50%) rotateX(0deg) rotateY(0deg);
+      animation: spinCube 10s linear infinite;
     }
-    input, button {
+
+    .cube div {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      background: rgba(0, 255, 255, 0.1);
+      border: 2px solid #0ff;
+      color: #0ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      text-shadow: 0 0 5px #0ff, 0 0 10px #0ff;
+    }
+
+    .front  { transform: translateZ(50px); }
+    .back   { transform: rotateY(180deg) translateZ(50px); }
+    .right  { transform: rotateY(90deg) translateZ(50px); }
+    .left   { transform: rotateY(-90deg) translateZ(50px); }
+    .top    { transform: rotateX(90deg) translateZ(50px); }
+    .bottom { transform: rotateX(-90deg) translateZ(50px); }
+
+    @keyframes spinCube {
+      from { transform: translate(-50%, -50%) rotateX(0deg) rotateY(0deg); }
+      to   { transform: translate(-50%, -50%) rotateX(360deg) rotateY(360deg); }
+    }
+
+    #content {
+      position: absolute;
+      bottom: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      color: #fff;
+    }
+
+    input {
       padding: 10px;
       margin: 5px;
-      font-size: 14px;
+      font-size: 16px;
       width: 80%;
       max-width: 300px;
+      border: 2px solid #0ff;
+      background: rgba(0,0,0,0.3);
+      color: #0ff;
+      text-align: center;
+      border-radius: 5px;
+      text-shadow: 0 0 5px #0ff;
     }
-    .corner-btn {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      z-index: 2;
-      padding: 5px 10px;
-      font-size: 12px;
-    }
-    #adminModal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.85);
-      color: white;
-      padding: 20px;
-      z-index: 10;
-      overflow-y: auto;
-    }
-    #adminContent {
-      max-width: 90%;
-      margin: auto;
+
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 14px;
       background: rgba(0,0,0,0.5);
-      padding: 15px;
-      border-radius: 8px;
+      border: 1px solid #0ff;
+      color: #0ff;
+      border-radius: 5px;
+      text-shadow: 0 0 5px #0ff;
     }
+
     .toast {
       position: fixed;
       bottom: 20px;
       left: 50%;
-      transform: translateX(-50%) translateY(20px);
+      transform: translateX(-50%);
       background: #28a745;
       padding: 8px 12px;
       border-radius: 5px;
       opacity: 0;
       color: white;
-      transition: all 0.3s ease;
       font-size: 12px;
+      transition: all 0.3s ease;
     }
   </style>
 </head>
 <body>
-  <button id="adminBtn" class="corner-btn">Access Admin</button>
-
-  <div id="content">
-    <input type="password" id="passwordInput" placeholder="Masukkan password" />
-    <button id="togglePwBtn">👁</button><br />
-    <button id="generateBtn">Get Key</button>
-    <button id="buyKeyBtn">BUY KEY</button><br />
-    <div id="spinner" style="display: none;">⏳ Loading...</div>
-    <div id="keyBox" style="display: none; white-space: pre-wrap;"></div>
-    <div id="errorBox" style="display: none; color: red;"></div>
-    <button id="copyBtn" style="display: none;">Salin Key</button>
-    <button id="toggleKeyBtn" style="display: none;">🙈 Hide</button>
+  <div class="cube">
+    <div class="front">RULL</div>
+    <div class="back">NEON</div>
+    <div class="right">3D</div>
+    <div class="left">CUBE</div>
+    <div class="top">RGB</div>
+    <div class="bottom">COOL</div>
   </div>
 
-  <div id="adminModal">
-    <div id="adminContent">
-      <h3>Admin Access</h3>
-      <div id="adminLogin">
-        <input type="password" id="adminPw" placeholder="Admin Password" />
-        <button onclick="checkAdmin()">Login</button>
-      </div>
-      <div id="adminPanel" style="display: none;">
-        <input id="newPw" placeholder="Password baru" /><br />
-        <input id="newKey" placeholder="Key baru" /><br />
-        <button onclick="addKey()">Simpan</button><br /><br />
-        <pre id="trackingInfo">Tracking: Memuat...</pre>
-        <button onclick="closeAdmin()">Tutup</button>
-      </div>
-    </div>
+  <div id="content">
+    <input type="password" id="passwordInput" placeholder="Masukkan Password" />
+    <button id="togglePwBtn">👁</button><br/>
+    <button id="generateBtn">Get Key</button>
+    <button id="buyKeyBtn">Buy Key</button>
+    <button id="adminBtn">Admin Access</button><br/>
+    <div id="spinner" style="display:none;">⏳ Loading...</div>
+    <div id="keyBox" style="display:none;white-space:pre-wrap;"></div>
+    <div id="errorBox" style="display:none;color:red;"></div>
+    <button id="copyBtn" style="display:none;">Salin Key</button>
+    <button id="toggleKeyBtn" style="display:none;">🙈 Hide</button>
   </div>
 
   <script>
-    let config = JSON.parse(localStorage.getItem("keyConfig")) || [{ password: "Rull123", key: "KEY-RULL-123" }];
+    let config = JSON.parse(localStorage.getItem("keyConfig")) || [{password:"Rull123", key:"KEY-RULL-123"}];
     let wrongAttempts = 0, isBlocked = false, keyVisible = true, entryCount = 0;
-    let trackingData = "";
-
-    fetch("https://ipapi.co/json/")
-      .then(r => r.json())
-      .then(d => {
-        trackingData = 
-  `IP: ${d.ip}
-Negara: ${d.country_name}
-Pulau: ${d.region}
-Device: ${navigator.userAgent}`;
-      });
 
     document.getElementById("generateBtn").addEventListener("click", function(){
       if(isBlocked) return;
@@ -143,7 +154,7 @@ Device: ${navigator.userAgent}`;
       setTimeout(() => {
         spinner.style.display = "none";
         if(match){
-          wrongAttempts = 0; entryCount++;
+          wrongAttempts=0; entryCount++;
           keyBox.textContent = `${entryCount}. Password: ${pw}\nGet Key: ${match.key}`;
           keyBox.style.display = "block";
           copyBtn.style.display = "inline";
@@ -157,37 +168,26 @@ Device: ${navigator.userAgent}`;
           errBox.textContent = "❌ Password salah!";
           errBox.style.display = "block";
           showToast("❌ Password salah!", false);
-          if(wrongAttempts >= 3){
+          if(wrongAttempts>=3){
             isBlocked = true;
             errBox.textContent = "⚠️ Salah 3x! Tunggu 10 detik...";
             this.disabled = true;
             document.getElementById("passwordInput").disabled = true;
             setTimeout(() => {
-              isBlocked = false; wrongAttempts = 0;
-              errBox.style.display = "none";
-              this.disabled = false;
-              document.getElementById("passwordInput").disabled = false;
-            }, 10000);
+              isBlocked=false; wrongAttempts=0;
+              errBox.style.display="none";
+              this.disabled=false;
+              document.getElementById("passwordInput").disabled=false;
+            },10000);
           }
         }
-      }, match ? 5000 : 3000);
+      }, match?5000:3000);
     });
 
     document.getElementById("togglePwBtn").addEventListener("click", function(){
-      const p = document.getElementById("passwordInput");
-      if(p.type === "password"){ p.type = "text"; this.textContent = "🙈"; }
-      else { p.type = "password"; this.textContent = "👁"; }
-    });
-
-    document.getElementById("toggleKeyBtn").addEventListener("click", function(){
-      const keyBox = document.getElementById("keyBox");
-      if(keyVisible){
-        keyBox.textContent = keyBox.textContent.replace(/[^\n]/g,"•");
-        keyVisible = false;
-        this.textContent = "👁 Show";
-      } else {
-        location.reload();
-      }
+      const p=document.getElementById("passwordInput");
+      if(p.type==="password"){p.type="text";this.textContent="🙈";}
+      else{p.type="password";this.textContent="👁";}
     });
 
     document.getElementById("copyBtn").addEventListener("click", function(){
@@ -198,61 +198,36 @@ Device: ${navigator.userAgent}`;
       });
     });
 
+    document.getElementById("toggleKeyBtn").addEventListener("click", function(){
+      const keyBox=document.getElementById("keyBox");
+      if(keyVisible){
+        keyBox.textContent = keyBox.textContent.replace(/[^\n]/g,"•");
+        keyVisible = false;
+        this.textContent="👁 Show";
+      } else {
+        location.reload();
+      }
+    });
+
     document.getElementById("buyKeyBtn").addEventListener("click", function(){
-      window.open("https://t.me/ARullReal", "_blank");
+      window.open("https://t.me/ARullReal","_blank");
     });
 
     document.getElementById("adminBtn").addEventListener("click", function(){
-      document.getElementById("adminModal").style.display = "block";
+      alert("Fitur Admin Access aktif. Tambahkan logika jika perlu!");
     });
 
-    function checkAdmin(){
-      const pw = document.getElementById("adminPw").value;
-      if(pw === "RullAdmin"){
-        document.getElementById("adminLogin").style.display = "none";
-        document.getElementById("adminPanel").style.display = "block";
-        document.getElementById("trackingInfo").textContent = trackingData;
-      } else {
-        alert("Password admin salah");
-      }
-    }
-
-    function addKey(){
-      const npw = document.getElementById("newPw").value.trim();
-      const nkey = document.getElementById("newKey").value.trim();
-      if(npw && nkey){
-        const exist = config.find(c => c.password === npw);
-        if(exist) exist.key = nkey;
-        else config.push({ password: npw, key: nkey });
-        localStorage.setItem("keyConfig", JSON.stringify(config));
-        alert("Berhasil disimpan!");
-      } else {
-        alert("Isi semua field!");
-      }
-    }
-
-    function closeAdmin(){
-      document.getElementById("adminModal").style.display = "none";
-      document.getElementById("adminLogin").style.display = "block";
-      document.getElementById("adminPanel").style.display = "none";
-      document.getElementById("adminPw").value = "";
-    }
-
-    function showToast(msg, success){
-      const t = document.createElement("div");
-      t.textContent = msg;
-      t.className = "toast";
-      t.style.background = success ? "#28a745" : "#dc3545";
+    function showToast(msg,success){
+      const t=document.createElement("div");
+      t.textContent=msg;
+      t.className="toast";
+      t.style.background=success?"#28a745":"#dc3545";
       document.body.appendChild(t);
-      setTimeout(() => { 
-        t.style.opacity = "1"; 
-        t.style.transform = "translateX(-50%) translateY(0)"; 
-      }, 50);
-      setTimeout(() => {
-        t.style.opacity = "0";
-        t.style.transform = "translateX(-50%) translateY(20px)";
-        setTimeout(() => t.remove(), 300);
-      }, 3000);
+      setTimeout(()=>{t.style.opacity="1";},50);
+      setTimeout(()=>{
+        t.style.opacity="0";
+        setTimeout(()=>t.remove(),300);
+      },3000);
     }
   </script>
 </body>
