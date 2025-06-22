@@ -3,22 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Key Generator</title>
-  <style>
-    body, html { margin: 0; padding: 0; overflow: hidden; }
-    canvas { position: fixed; top: 0; left: 0; z-index: -1; }
-    #content { position: relative; z-index: 1; padding: 20px; color: #fff; }
-    input, button { margin: 5px; padding: 10px; font-size: 16px; }
-    #spinner { display: none; }
-    #keyBox, #errorBox { white-space: pre-wrap; margin-top: 10px; }
-    .toast {
-      position: fixed; bottom: 20px; right: 20px; padding: 10px 15px;
-      border-radius: 5px; color: #fff; opacity: 0;
-      transition: all 0.3s ease; transform: translateY(20px);
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <canvas id="bgCanvas"></canvas>
+
   <div id="content">
     <h1>Key Generator</h1>
     <input type="password" id="passwordInput" placeholder="Masukkan password">
@@ -36,196 +25,24 @@
       <button id="telegramBtn">Click Me (Telegram @ARullReal)</button>
     </div>
 
-    <div id="adminModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); color:#fff; padding:20px; z-index:10; overflow:auto;">
-      <h2>Admin Panel</h2>
-      <input type="password" id="adminPassInput" placeholder="Admin password">
-      <button id="checkAdminPass">Login Admin</button>
-      <div id="adminContent" style="display:none;">
-        <h3>Tambah/Ubah Key</h3>
-        <input id="newPw" placeholder="Password baru">
-        <input id="newKey" placeholder="Key baru">
-        <button id="addKeyBtn">Tambah/Ubah</button>
-        <h3>Tracking Data</h3>
-        <pre id="trackingData" style="background:#333; padding:10px;"></pre>
-        <button onclick="closeAdmin()">Tutup</button>
+    <div id="adminModal">
+      <div id="adminPanel">
+        <h2>Admin Panel</h2>
+        <input type="password" id="adminPassInput" placeholder="Admin password">
+        <button id="checkAdminPass">Login Admin</button>
+        <div id="adminContent">
+          <h3>Tambah/Ubah Key</h3>
+          <input id="newPw" placeholder="Password baru">
+          <input id="newKey" placeholder="Key baru">
+          <button id="addKeyBtn">Tambah/Ubah</button>
+          <h3>Tracking Data</h3>
+          <pre id="trackingData"></pre>
+          <button onclick="closeAdmin()">Tutup</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <script>
-    // ====== BACKGROUND NEON RGB KUBUS ======
-    const canvas = document.getElementById("bgCanvas");
-    const ctx = canvas.getContext("2d");
-    let w = window.innerWidth, h = window.innerHeight;
-    canvas.width = w; canvas.height = h;
-    let cubes = Array.from({length: 50}, () => ({
-      x: Math.random()*w, y: Math.random()*h,
-      size: 10 + Math.random()*20,
-      dx: (Math.random()-0.5)*2, dy: (Math.random()-0.5)*2,
-      color: `rgb(${Math.random()*255},${Math.random()*255},${Math.random()*255})`
-    }));
-    function animate() {
-      ctx.clearRect(0,0,w,h);
-      cubes.forEach(c => {
-        ctx.fillStyle = c.color;
-        ctx.fillRect(c.x, c.y, c.size, c.size);
-        c.x += c.dx; c.y += c.dy;
-        if (c.x<0 || c.x>w) c.dx*=-1;
-        if (c.y<0 || c.y>h) c.dy*=-1;
-      });
-      requestAnimationFrame(animate);
-    }
-    animate();
-    window.addEventListener("resize", () => {
-      w = window.innerWidth; h = window.innerHeight;
-      canvas.width = w; canvas.height = h;
-    });
-
-    // ====== LOGIC ======
-    let config = [
-      {password:"Rull123", key:"KeyABC"},
-      {password:"Rull456", key:"KeyDEF"}
-    ];
-    let adminPassword = "RullAdmin";
-    let wrongAttempts = 0, isBlocked = false, keyVisible = true, entryCount = 0;
-    let deviceInfo = navigator.userAgent;
-    let userLocation = {lat:null, lon:null, ip:null, city:null, country:null};
-    fetch("https://ipapi.co/json/").then(r=>r.json()).then(d=>{
-      userLocation={lat:d.latitude, lon:d.longitude, ip:d.ip, city:d.city, country:d.country_name};
-    });
-
-    document.getElementById("generateBtn").addEventListener("click", function(){
-      if(isBlocked) return;
-      const pw = document.getElementById("passwordInput").value.trim();
-      const keyBox = document.getElementById("keyBox");
-      const errBox = document.getElementById("errorBox");
-      const spinner = document.getElementById("spinner");
-      const copyBtn = document.getElementById("copyBtn");
-      const toggleKeyBtn = document.getElementById("toggleKeyBtn");
-
-      keyBox.style.display="none"; errBox.style.display="none";
-      copyBtn.style.display="none"; toggleKeyBtn.style.display="none";
-      spinner.style.display="inline-block";
-
-      const matched = config.find(c => c.password === pw);
-      setTimeout(() => {
-        spinner.style.display="none";
-        if(matched){
-          wrongAttempts=0; entryCount++;
-          const text = `${entryCount}. Password: ${pw}\nGet key: ${matched.key}`;
-          keyBox.textContent += (keyBox.textContent ? "\n\n" : "") + text;
-          keyBox.style.display="block";
-          copyBtn.style.display="inline-block";
-          toggleKeyBtn.style.display="inline-block";
-          copyBtn.dataset.key = matched.key;
-          keyVisible = true;
-          toggleKeyBtn.textContent = "🙈 Hide";
-          showToast("✅ Key ditemukan!", true);
-        } else {
-          wrongAttempts++;
-          errBox.textContent="❌ Password salah!";
-          errBox.style.display="block";
-          showToast("❌ Password salah!", false);
-          if(wrongAttempts>=3){
-            isBlocked=true;
-            errBox.textContent="⚠️ Salah 3x! Tunggu 10 detik...";
-            this.disabled=true;
-            document.getElementById("passwordInput").disabled=true;
-            setTimeout(()=>{
-              isBlocked=false; wrongAttempts=0;
-              errBox.style.display="none";
-              this.disabled=false;
-              document.getElementById("passwordInput").disabled=false;
-            },10000);
-          }
-        }
-      }, matched ? 5000 : 3000);
-    });
-
-    document.getElementById("copyBtn").addEventListener("click", function(){
-      navigator.clipboard.writeText(this.dataset.key).then(()=>{
-        showToast("✅ Key disalin!", true);
-      }).catch(()=>{
-        showToast("❌ Gagal salin!", false);
-      });
-    });
-
-    document.getElementById("togglePwBtn").addEventListener("click", function(){
-      const p = document.getElementById("passwordInput");
-      if(p.type==="password"){ p.type="text"; this.textContent="🙈"; }
-      else{ p.type="password"; this.textContent="👁"; }
-    });
-
-    document.getElementById("toggleKeyBtn").addEventListener("click", function(){
-      const keyBox = document.getElementById("keyBox");
-      if(keyVisible){
-        keyBox.textContent = keyBox.textContent.replace(/[^\n]/g,"•");
-        keyVisible=false; this.textContent="👁 Show";
-      } else {
-        location.reload();
-      }
-    });
-
-    document.getElementById("buyKeyBtn").addEventListener("click",()=>{
-      document.getElementById("buySection").scrollIntoView({behavior:"smooth"});
-    });
-
-    document.getElementById("telegramBtn").addEventListener("click",()=>{
-      window.open("https://t.me/ARullReal","_blank");
-    });
-
-    document.getElementById("adminBtn").addEventListener("click",()=>{
-      document.getElementById("adminModal").style.display="block";
-    });
-
-    document.getElementById("checkAdminPass").addEventListener("click",()=>{
-      if(document.getElementById("adminPassInput").value===adminPassword){
-        document.getElementById("adminContent").style.display="block";
-        document.getElementById("adminPassInput").style.display="none";
-        document.getElementById("checkAdminPass").style.display="none";
-        renderTracking();
-        showToast("✅ Admin login sukses",true);
-      } else {
-        showToast("❌ Admin password salah",false);
-      }
-    });
-
-    document.getElementById("addKeyBtn").addEventListener("click",()=>{
-      const pw = document.getElementById("newPw").value.trim();
-      const key = document.getElementById("newKey").value.trim();
-      if(pw && key){
-        const ex = config.find(c=>c.password===pw);
-        if(ex){ ex.key=key; showToast("✅ Key diperbarui",true);}
-        else{ config.push({password:pw,key:key}); showToast("✅ Key ditambah",true);}
-      } else {
-        showToast("❌ Isi password dan key",false);
-      }
-    });
-
-    function renderTracking(){
-      const t = `Device: ${deviceInfo}\nIP: ${userLocation.ip}\nLoc: ${userLocation.lat},${userLocation.lon}\nCity: ${userLocation.city}\nCountry: ${userLocation.country}`;
-      document.getElementById("trackingData").textContent = t;
-    }
-
-    function closeAdmin(){
-      document.getElementById("adminModal").style.display="none";
-      document.getElementById("adminPassInput").style.display="inline";
-      document.getElementById("checkAdminPass").style.display="inline";
-      document.getElementById("adminContent").style.display="none";
-      document.getElementById("adminPassInput").value="";
-    }
-
-    function showToast(msg,s){
-      const t=document.createElement("div");
-      t.textContent=msg; t.className="toast";
-      t.style.background=s?"#28a745":"#dc3545";
-      document.body.appendChild(t);
-      setTimeout(()=>{t.style.opacity="1";t.style.transform="translateY(0)";},50);
-      setTimeout(()=>{
-        t.style.opacity="0";t.style.transform="translateY(20px)";
-        setTimeout(()=>t.remove(),300);
-      },3000);
-    }
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
