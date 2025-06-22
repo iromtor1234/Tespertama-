@@ -2,61 +2,77 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Gunung Key Access</title>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neon Key Access</title>
 <style>
   html, body {
     margin: 0; padding: 0;
-    font-family: sans-serif;
-    background: url('https://i.ibb.co/9q5PjS6/mountain-bg.png') no-repeat center center / cover;
     height: 100%; overflow: hidden;
+    font-family: sans-serif;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    background-size: 400% 400%;
+    animation: gradientBG 10s ease infinite;
   }
+
+  @keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
   #toggleMenuBtn {
-    position: fixed; top: 10px; right: 10px;
+    position: fixed; top: 10px; left: 10px;
     z-index: 10;
-    font-size: 24px;
-    background: rgba(255,255,255,0.3);
-    border: none; border-radius: 4px;
+    display: flex; align-items: center;
+    background: rgba(255,255,255,0.2);
     padding: 5px 10px;
+    border: none; border-radius: 6px;
+    color: #fff; cursor: pointer;
   }
-  #adminBtn {
-    position: fixed; bottom: 10px; right: 10px;
-    z-index: 10;
-    font-size: 14px;
-    background: rgba(255,255,255,0.3);
-    border: none; border-radius: 4px;
-    padding: 5px 10px;
+
+  #toggleMenuBtn img {
+    width: 20px; height: 20px; margin-right: 5px;
   }
+
   #slideMenu {
     position: fixed;
-    right: -260px; top: 50%; transform: translateY(-50%);
-    width: 250px; background: rgba(0,0,0,0.7);
-    padding: 10px; border-radius: 8px;
+    top: 0; right: -260px;
+    width: 250px; height: 100%;
+    background: rgba(0,0,0,0.8);
+    padding: 10px;
+    border-radius: 8px 0 0 8px;
     transition: right 0.3s;
     z-index: 9;
+    display: flex; flex-direction: column;
+    justify-content: center;
   }
-  #slideMenu.open { right: 50%; transform: translate(50%,-50%); }
+
+  #slideMenu.open { right: 0; }
+
   input, button {
-    width: 100%; padding: 8px; margin: 5px 0;
-    border: none; border-radius: 4px; font-size: 1em;
+    width: 100%; padding: 8px;
+    margin: 5px 0; border: none;
+    border-radius: 4px; font-size: 1em;
   }
+
   #keyBox, #errorBox {
-    padding: 5px; margin: 5px 0; border-radius: 4px;
+    padding: 5px; margin: 5px 0;
+    border-radius: 4px;
   }
-  #keyBox { background: rgba(0,0,0,0.5); color: #fff; }
-  #errorBox { background: rgba(255,0,0,0.5); color: #fff; }
+
+  #keyBox { background: rgba(0, 255, 0, 0.3); color: #fff; }
+  #errorBox { background: rgba(255, 0, 0, 0.3); color: #fff; }
   #copyBtn { display: none; }
 </style>
 </head>
 <body>
 
-<button id="toggleMenuBtn">🏠</button>
-<button id="adminBtn">Admin Access</button>
+<button id="toggleMenuBtn">
+  <img src="https://img.icons8.com/ios-filled/50/ffffff/home.png" alt="Home">
+  Click Me to Open Menu
+</button>
 
 <div id="slideMenu">
-  <h3>Password</h3>
   <input type="password" id="passwordInput" placeholder="Masukkan Password">
   <button id="togglePwBtn">👁</button>
   <button id="generateBtn">Get Key</button>
@@ -68,111 +84,68 @@
 </div>
 
 <script>
-// Firebase setup
-const firebaseConfig = {
-  apiKey: "AIzaSyCldtyF1JSvBo4eBVBlYdI9pDAwM42Rb4M",
-  authDomain: "rullweb.firebaseapp.com",
-  databaseURL: "https://rullweb-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "rullweb",
-  storageBucket: "rullweb.firebasestorage.app",
-  messagingSenderId: "69407076508",
-  appId: "1:69407076508:web:2f06036ef3785c65bb7d59"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
 let wrongAttempts = 0, isBlocked = false;
 
-// Toggle menu
-toggleMenuBtn.onclick = () => {
-  slideMenu.classList.toggle("open");
+document.getElementById("toggleMenuBtn").onclick = () => {
+  document.getElementById("slideMenu").classList.toggle("open");
 };
 
-// Toggle password visibility
-togglePwBtn.onclick = () => {
-  if (passwordInput.type === "password") {
-    passwordInput.type = "text";
-    togglePwBtn.textContent = "🙈";
+document.getElementById("togglePwBtn").onclick = () => {
+  const pwInput = document.getElementById("passwordInput");
+  if (pwInput.type === "password") {
+    pwInput.type = "text";
+    document.getElementById("togglePwBtn").textContent = "🙈";
   } else {
-    passwordInput.type = "password";
-    togglePwBtn.textContent = "👁";
+    pwInput.type = "password";
+    document.getElementById("togglePwBtn").textContent = "👁";
   }
 };
 
-// Generate key
-generateBtn.onclick = () => {
+document.getElementById("generateBtn").onclick = () => {
   if (isBlocked) return;
-  const pw = passwordInput.value.trim();
-  if (!pw) return alert("Isi password!");
-  showSpinner(true);
-  db.ref("visitorCount").transaction(c => (c || 0) + 1);
-  db.ref("keys").orderByChild("password").equalTo(pw).once("value", snap => {
-    showSpinner(false);
-    if (snap.exists()) {
-      const data = Object.values(snap.val())[0];
-      showKey(`Password: ${pw}\nKey: ${data.key}`);
+  const pw = document.getElementById("passwordInput").value.trim();
+  if (!pw) return alert("Isi password dulu!");
+  document.getElementById("spinner").style.display = "block";
+  setTimeout(() => {
+    document.getElementById("spinner").style.display = "none";
+    if (pw === "Rull123") {
+      document.getElementById("keyBox").textContent = `Password: ${pw}\nKey: RullKey123`;
+      document.getElementById("keyBox").style.display = "block";
+      document.getElementById("copyBtn").style.display = "block";
       wrongAttempts = 0;
     } else {
       wrongAttempts++;
-      showError("❌ Password salah!");
+      document.getElementById("errorBox").textContent = "❌ Password salah!";
+      document.getElementById("errorBox").style.display = "block";
       if (wrongAttempts >= 3) {
         isBlocked = true;
-        showError("⚠️ Salah 3x! Tunggu 10 detik...");
+        document.getElementById("errorBox").textContent = "⚠️ Salah 3x! Tunggu 10 detik...";
         disableInputs(true);
         setTimeout(() => {
           isBlocked = false;
           wrongAttempts = 0;
+          document.getElementById("errorBox").style.display = "none";
           disableInputs(false);
-          hideError();
         }, 10000);
       }
     }
+  }, 3000);
+};
+
+document.getElementById("copyBtn").onclick = () => {
+  const text = document.getElementById("keyBox").textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    alert("✅ Key disalin!");
   });
 };
 
-// Copy key
-copyBtn.onclick = () => {
-  navigator.clipboard.writeText(keyBox.textContent).then(() => alert("✅ Key disalin!"));
+document.getElementById("buyKeyBtn").onclick = () => {
+  window.open("https://t.me/ARullReal", "_blank");
 };
 
-// Buy key
-buyKeyBtn.onclick = () => window.open("https://t.me/ARullReal", "_blank");
-
-// Admin access
-adminBtn.onclick = () => {
-  const pw = prompt("Masukkan password admin:");
-  if (pw !== "RullAdmin") return alert("❌ Salah password admin!");
-  db.ref("visitorCount").once("value", s => {
-    alert(`👥 Visitor: ${s.val() || 0}`);
-  });
-  db.ref("keys").once("value", s => {
-    let msg = "🔑 Key list:\n";
-    s.forEach(c => {
-      const d = c.val();
-      msg += `${d.password} : ${d.key}\n`;
-    });
-    alert(msg);
-  });
-};
-
-function showSpinner(s) {
-  spinner.style.display = s ? "block" : "none";
-}
-function showKey(t) {
-  keyBox.textContent = t;
-  keyBox.style.display = "block";
-  copyBtn.style.display = "block";
-}
-function showError(t) {
-  errorBox.textContent = t;
-  errorBox.style.display = "block";
-}
-function hideError() {
-  errorBox.style.display = "none";
-}
 function disableInputs(b) {
-  generateBtn.disabled = b;
-  passwordInput.disabled = b;
+  document.getElementById("generateBtn").disabled = b;
+  document.getElementById("passwordInput").disabled = b;
 }
 </script>
 
