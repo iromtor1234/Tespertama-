@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Get Key + Who See + Firebase</title>
+  <title>Get Key + Who See + Firebase + Maps</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <style>
@@ -94,6 +94,8 @@
             ip: data.ip || "Unknown",
             pulau: data.region || "Unknown",
             negara: data.country_name || "Unknown",
+            lat: data.latitude || "Unknown",
+            lon: data.longitude || "Unknown",
             time: new Date().toISOString()
           };
           db.ref("visitors/devices").push(info);
@@ -124,12 +126,18 @@
         let i = 1;
         devicesSnap.forEach(child => {
           const val = child.val();
+          let mapLink = (val.lat !== "Unknown" && val.lon !== "Unknown") 
+            ? `<a href="https://www.google.com/maps/search/?api=1&query=${val.lat},${val.lon}" target="_blank" style="color:lightblue">Lihat di Google Maps</a>`
+            : "Koordinat tidak tersedia";
+
           html += `
             <div>
               <b>${i++}.</b> ${val.device}<br>
               IP: ${val.ip}<br>
               Asal Pulau: ${val.pulau}<br>
               Negara: ${val.negara}<br>
+              Koordinat: ${val.lat}, ${val.lon}<br>
+              ${mapLink}<br>
               Waktu: ${val.time}
             </div><hr>`;
         });
