@@ -1,182 +1,208 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Key Generator + Tracking</title>
-  <style>
-    body {
-      margin: 0;
-      background: url('https://opengameart.org/sites/default/files/background_40.png') no-repeat center center fixed;
-      background-size: cover;
-      font-family: sans-serif;
-      color: #0ff;
-    }
-    #adminBtn {
-      position: fixed; top: 10px; right: 10px;
-      padding: 5px 10px; background: rgba(0,0,0,0.5); border: 1px solid #0ff; border-radius: 4px;
-    }
-    .container {
-      text-align: center;
-      padding-top: 100px;
-    }
-    input {
-      padding: 10px; border: 1px solid #0ff; border-radius: 4px; background: rgba(0,0,0,0.5); color: #0ff;
-    }
-    button {
-      padding: 8px 16px; margin: 5px; background: rgba(0,0,0,0.5); border: 1px solid #0ff; border-radius: 4px; color: #0ff;
-    }
-    #spinner { display: none; }
-    .toast {
-      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-      padding: 8px 12px; border-radius: 5px; background: #28a745; opacity: 0;
-      transition: opacity 0.3s ease; font-size: 12px;
-    }
-    #adminPanel {
-      position: fixed; top: 50px; right: 10px;
-      background: rgba(0,0,0,0.8); padding: 10px; border-radius: 6px; display: none; max-width: 300px;
-    }
-    #adminPanel pre { font-size: 12px; white-space: pre-wrap; word-wrap: break-word; }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Key Generator + Admin + Tracking</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 </head>
-<body>
+<body style="background:#000;color:#0ff;font-family:sans-serif;">
 
-  <button id="adminBtn">Access Admin</button>
+<button id="adminBtn" style="position:fixed;top:10px;right:10px;">Access Admin</button>
 
-  <div class="container">
-    <input type="password" id="passwordInput" placeholder="Masukkan Password" />
-    <button id="togglePwBtn">👁</button><br>
-    <button id="generateBtn">Get Key</button>
-    <button id="buyKeyBtn">Buy Key</button>
-    <div id="spinner">⏳ Loading...</div>
-    <div id="keyBox" style="display:none;white-space:pre-wrap;"></div>
-    <div id="errorBox" style="display:none;color:red;"></div>
-    <button id="copyBtn" style="display:none;">Salin Key</button>
-  </div>
+<div style="text-align:center;margin-top:100px;">
+  <input type="password" id="passwordInput" placeholder="Masukkan Password" style="padding:10px;">
+  <button id="generateBtn">Get Key</button>
+  <button id="buyKeyBtn">Buy Key</button>
+  <div id="spinner" style="display:none;">⏳ Loading...</div>
+  <div id="keyBox" style="display:none;white-space:pre-wrap;"></div>
+  <div id="errorBox" style="display:none;color:red;"></div>
+  <button id="copyBtn" style="display:none;">Salin Key</button>
+</div>
 
-  <div id="adminPanel">
-    <div><strong>Admin Panel</strong></div>
-    <div id="visitorInfo"></div>
-    <pre id="visitorData"></pre>
-    <button id="addKeyBtn">Tambah Password + Key</button>
-    <button onclick="document.getElementById('adminPanel').style.display='none'">Tutup</button>
-  </div>
+<div id="adminPanel" style="display:none;position:fixed;top:50px;right:10px;background:#111;padding:10px;border-radius:6px;max-height:90%;overflow:auto;">
+  <div><strong>Admin Panel</strong></div>
+  <div id="visitorInfo"></div>
+  <pre id="visitorData"></pre>
+  <hr/>
+  <div id="keyList"></div>
+  <button id="addKeyBtn">Tambah Password + Key</button>
+  <button onclick="document.getElementById('adminPanel').style.display='none'">Tutup</button>
+</div>
 
-  <script>
-    let config = JSON.parse(localStorage.getItem("keyConfig")) || [
-      { password: "Rull123", key: "KEY-RULL-123" }
-    ];
-    let visitors = JSON.parse(localStorage.getItem("visitors")) || [];
-    let wrongAttempts = 0, isBlocked = false, entryCount = 0;
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCldtyF1JSvBo4eBVBlYdI9pDAwM42Rb4M",
+  authDomain: "rullweb.firebaseapp.com",
+  databaseURL: "https://rullweb-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "rullweb",
+  storageBucket: "rullweb.firebasestorage.app",
+  messagingSenderId: "69407076508",
+  appId: "1:69407076508:web:2f06036ef3785c65bb7d59"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-    // Ambil info IP + lokasi via ipinfo
-    fetch('https://ipinfo.io/json?token=7004bb2c0f2233')
-      .then(res => res.json())
-      .then(data => {
-        const visitor = {
-          ip: data.ip,
-          device: navigator.userAgent,
-          pulau: data.region || "Tidak diketahui",
-          negara: data.country || "Tidak diketahui"
-        };
-        visitors.push(visitor);
-        localStorage.setItem("visitors", JSON.stringify(visitors));
-      })
-      .catch(err => console.error("Gagal ambil IP info", err));
+let wrongAttempts = 0;
+let isBlocked = false;
+let entryCount = 0;
 
-    document.getElementById("generateBtn").addEventListener("click", function() {
-      if (isBlocked) return;
-      const pw = document.getElementById("passwordInput").value.trim();
-      const spinner = document.getElementById("spinner");
-      const keyBox = document.getElementById("keyBox");
-      const errorBox = document.getElementById("errorBox");
-      const copyBtn = document.getElementById("copyBtn");
-      keyBox.style.display = "none"; errorBox.style.display = "none"; copyBtn.style.display = "none";
-      spinner.style.display = "inline";
-      const match = config.find(c => c.password === pw);
-      setTimeout(() => {
-        spinner.style.display = "none";
-        if (match) {
-          entryCount++;
-          keyBox.textContent = `${entryCount}. Password: ${pw}\nGet Key: ${match.key}`;
-          keyBox.style.display = "block";
-          copyBtn.style.display = "inline";
-          copyBtn.dataset.key = match.key;
-          showToast("✅ Key ditemukan!", true);
-          wrongAttempts = 0;
-        } else {
-          wrongAttempts++;
-          errorBox.textContent = "❌ Password salah!";
-          errorBox.style.display = "block";
-          showToast("❌ Password salah!", false);
-          if (wrongAttempts >= 3) {
-            isBlocked = true;
-            errorBox.textContent = "⚠️ Salah 3x! Tunggu 10 detik...";
-            this.disabled = true;
-            document.getElementById("passwordInput").disabled = true;
-            setTimeout(() => {
-              isBlocked = false; wrongAttempts = 0; errorBox.style.display = "none";
-              this.disabled = false; document.getElementById("passwordInput").disabled = false;
-            }, 10000);
-          }
-        }
-      }, match ? 5000 : 3000);
+// Tracking
+fetch('https://ipinfo.io/json?token=7004bb2c0f2233')
+.then(res => res.json())
+.then(ipData => {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      saveVisitor(ipData, pos.coords.latitude, pos.coords.longitude);
+    }, () => {
+      saveVisitor(ipData, "Tidak diketahui", "Tidak diketahui");
     });
+  } else {
+    saveVisitor(ipData, "Tidak diketahui", "Tidak diketahui");
+  }
+});
 
-    document.getElementById("copyBtn").addEventListener("click", function(){
-      navigator.clipboard.writeText(this.dataset.key).then(() => {
-        showToast("✅ Key disalin!", true);
-      }).catch(() => {
-        showToast("❌ Gagal salin!", false);
-      });
-    });
+function saveVisitor(ipData, lat, lon) {
+  const visitor = {
+    ip: ipData.ip,
+    device: navigator.userAgent,
+    pulau: ipData.region || "Tidak diketahui",
+    negara: ipData.country || "Tidak diketahui",
+    lat, lon,
+    waktu: new Date().toISOString()
+  };
+  db.ref("visitors").push(visitor);
+}
 
-    document.getElementById("buyKeyBtn").addEventListener("click", function(){
-      window.open("https://t.me/ARullReal", "_blank");
-    });
-
-    document.getElementById("togglePwBtn").addEventListener("click", function(){
-      const pw = document.getElementById("passwordInput");
-      pw.type = (pw.type === "password") ? "text" : "password";
-      this.textContent = (pw.type === "password") ? "👁" : "🙈";
-    });
-
-    document.getElementById("adminBtn").addEventListener("click", function(){
-      const adminPw = prompt("Masukkan password admin:");
-      if (adminPw === "RullAdmin") {
-        updateVisitorInfo();
-        document.getElementById("adminPanel").style.display = "block";
-      } else {
-        showToast("❌ Password admin salah!", false);
+// Get Key
+document.getElementById("generateBtn").addEventListener("click", function(){
+  if (isBlocked) return;
+  const pw = document.getElementById("passwordInput").value.trim();
+  showSpinner(true);
+  db.ref("keys").orderByChild("password").equalTo(pw).once("value", snapshot => {
+    showSpinner(false);
+    if (snapshot.exists()) {
+      const data = Object.values(snapshot.val())[0];
+      entryCount++;
+      showKey(`${entryCount}. Password: ${pw}\nGet Key: ${data.key}`);
+      wrongAttempts = 0;
+    } else {
+      wrongAttempts++;
+      showError("❌ Password salah!");
+      if (wrongAttempts >= 3) {
+        isBlocked = true;
+        showError("⚠️ Salah 3x! Tunggu 10 detik...");
+        disableInputs(true);
+        setTimeout(() => {
+          isBlocked = false; wrongAttempts = 0;
+          disableInputs(false);
+          hideError();
+        }, 10000);
       }
-    });
-
-    document.getElementById("addKeyBtn").addEventListener("click", function(){
-      const newPw = prompt("Password baru:");
-      const newKey = prompt("Key baru:");
-      if(newPw && newKey){
-        config.push({password:newPw,key:newKey});
-        localStorage.setItem("keyConfig", JSON.stringify(config));
-        showToast("✅ Password & Key ditambah!", true);
-      }
-    });
-
-    function updateVisitorInfo() {
-      document.getElementById("visitorInfo").textContent = "Jumlah Pengunjung: " + visitors.length;
-      document.getElementById("visitorData").textContent = visitors.map((v,i)=>
-        `${i+1}. IP: ${v.ip}\nDevice: ${v.device}\nPulau: ${v.pulau}\nNegara: ${v.negara}\n`).join("\n");
     }
+  });
+});
 
-    function showToast(msg, succ){
-      const t = document.createElement("div");
-      t.className = "toast";
-      t.textContent = msg;
-      t.style.background = succ ? "#28a745" : "#dc3545";
-      document.body.appendChild(t);
-      setTimeout(()=>t.style.opacity="1",100);
-      setTimeout(()=>{t.style.opacity="0"; setTimeout(()=>t.remove(),300);},3000);
-    }
-  </script>
+// Copy
+document.getElementById("copyBtn").addEventListener("click", function(){
+  const text = document.getElementById("keyBox").textContent;
+  navigator.clipboard.writeText(text).then(() => alert("✅ Key disalin!"));
+});
 
+// Buy
+document.getElementById("buyKeyBtn").addEventListener("click", function(){
+  window.open("https://t.me/ARullReal", "_blank");
+});
+
+// Admin Access
+document.getElementById("adminBtn").addEventListener("click", function(){
+  const pw = prompt("Masukkan password admin:");
+  if (pw === "RullAdmin") {
+    showAdminPanel();
+  } else {
+    alert("❌ Password admin salah!");
+  }
+});
+
+document.getElementById("addKeyBtn").addEventListener("click", function(){
+  const newPw = prompt("Password baru:");
+  const newKey = prompt("Key baru:");
+  if (newPw && newKey) {
+    db.ref("keys").push({ password: newPw, key: newKey });
+    alert("✅ Password + Key ditambahkan!");
+    loadKeys();
+  }
+});
+
+function showAdminPanel(){
+  document.getElementById("adminPanel").style.display = "block";
+  loadVisitors();
+  loadKeys();
+}
+
+function loadVisitors(){
+  db.ref("visitors").once("value", snap => {
+    const data = snap.val() || {};
+    document.getElementById("visitorInfo").textContent = `Jumlah pengunjung: ${Object.keys(data).length}`;
+    document.getElementById("visitorData").textContent = Object.values(data).map((v,i)=>
+      `${i+1}. IP: ${v.ip}\nDevice: ${v.device}\nPulau: ${v.pulau}\nNegara: ${v.negara}\nKoordinat: ${v.lat}, ${v.lon}\nWaktu: ${v.waktu}\n`
+    ).join("\n");
+  });
+}
+
+function loadKeys(){
+  db.ref("keys").once("value", snap => {
+    const data = snap.val() || {};
+    const list = Object.entries(data).map(([id, v]) => 
+      `<div style="margin-bottom:4px;">
+        <b>${v.password}</b> ➡ ${v.key}
+        <button onclick="editKey('${id}', '${v.password}', '${v.key}')">Edit</button>
+        <button onclick="deleteKey('${id}')">Hapus</button>
+      </div>`
+    ).join("");
+    document.getElementById("keyList").innerHTML = list;
+  });
+}
+
+function editKey(id, oldPw, oldKey){
+  const newPw = prompt("Password baru:", oldPw);
+  const newKey = prompt("Key baru:", oldKey);
+  if (newPw && newKey){
+    db.ref("keys/"+id).set({ password: newPw, key: newKey });
+    alert("✅ Key diperbarui!");
+    loadKeys();
+  }
+}
+
+function deleteKey(id){
+  if (confirm("Hapus key ini?")){
+    db.ref("keys/"+id).remove();
+    alert("✅ Key dihapus!");
+    loadKeys();
+  }
+}
+
+function showSpinner(show){
+  document.getElementById("spinner").style.display = show ? "inline" : "none";
+}
+function showKey(text){
+  document.getElementById("keyBox").textContent = text;
+  document.getElementById("keyBox").style.display = "block";
+  document.getElementById("copyBtn").style.display = "inline";
+}
+function showError(msg){
+  const box = document.getElementById("errorBox");
+  box.textContent = msg;
+  box.style.display = "block";
+}
+function hideError(){
+  document.getElementById("errorBox").style.display = "none";
+}
+function disableInputs(dis){
+  document.getElementById("generateBtn").disabled = dis;
+  document.getElementById("passwordInput").disabled = dis;
+}
+</script>
 </body>
 </html>
