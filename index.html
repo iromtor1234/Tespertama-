@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Get Key + Visitor Counter</title>
+  <title>Get Key + Who See Secure</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <style>
@@ -12,9 +12,9 @@
       background-size: 600% 600%;
       animation: gradientBG 10s ease infinite;
       font-family: sans-serif;
-      text-align: center;
       color: white;
       padding: 50px;
+      position: relative;
     }
     @keyframes gradientBG {
       0% { background-position: 0% 50%; }
@@ -32,9 +32,27 @@
       margin-top: 20px;
       font-size: 18px;
     }
+    #whoSee {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #visitorPanel {
+      margin-top: 20px;
+      padding: 10px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 5px;
+      display: none;
+    }
   </style>
 </head>
 <body>
+
+  <div id="whoSee" onclick="askWhoSee()">Who See 👀</div>
 
   <h2>Masukkan Password untuk Get Key</h2>
   <input type="password" id="passwordInput" placeholder="Masukkan password">
@@ -44,7 +62,7 @@
 
   <div id="result"></div>
 
-  <p>Jumlah Kunjungan: <span id="visitorCount">0</span></p>
+  <div id="visitorPanel"></div>
 
   <script>
     const firebaseConfig = {
@@ -60,19 +78,55 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Visitor counter
+    function getDeviceInfo() {
+      return navigator.userAgent;
+    }
+
     window.addEventListener("load", () => {
       const visitorRef = db.ref("visitors/count");
       visitorRef.get().then(snapshot => {
         let count = snapshot.val() || 0;
         count++;
-        visitorRef.set(count).then(() => {
-          document.getElementById("visitorCount").textContent = count;
-        });
+        visitorRef.set(count);
+
+        const deviceRef = db.ref("visitors/devices").push();
+        deviceRef.set(getDeviceInfo());
       });
     });
 
-    // Check password
+    function askWhoSee() {
+      const pw = prompt("Masukkan password untuk Who See:");
+      if (pw === "RullReal") {
+        showWhoSee();
+      } else {
+        alert("❌ Password salah untuk Who See!");
+      }
+    }
+
+    function showWhoSee() {
+      const visitorPanel = document.getElementById("visitorPanel");
+      visitorPanel.style.display = "block";
+      visitorPanel.innerHTML = "Loading data...";
+
+      const countRef = db.ref("visitors/count");
+      const devicesRef = db.ref("visitors/devices");
+
+      Promise.all([
+        countRef.get(),
+        devicesRef.get()
+      ]).then(([countSnap, devicesSnap]) => {
+        let html = `<h3>Jumlah Pengunjung: ${countSnap.val() || 0}</h3>`;
+        html += `<h4>Daftar Device:</h4>`;
+        devicesSnap.forEach(child => {
+          html += `<div>${child.val()}</div>`;
+        });
+        visitorPanel.innerHTML = html;
+      }).catch(err => {
+        visitorPanel.innerHTML = "Gagal memuat data.";
+        console.error(err);
+      });
+    }
+
     function checkPassword() {
       const input = document.getElementById("passwordInput").value.trim();
       const passRef = db.ref("passwords/" + input);
