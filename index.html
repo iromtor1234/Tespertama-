@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Get Key + Visitor Counter Aman</title>
+  <title>Get Key + Visitor Counter</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <style>
@@ -16,13 +16,11 @@
       color: white;
       padding: 50px;
     }
-
     @keyframes gradientBG {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-
     input, button {
       padding: 10px;
       font-size: 16px;
@@ -30,7 +28,6 @@
       border: none;
       border-radius: 5px;
     }
-
     #result {
       margin-top: 20px;
       font-size: 18px;
@@ -51,20 +48,20 @@
 
   <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyCldtyF1JSvBo4eBVBlYdI9pDAwM42Rb4M",
-      authDomain: "rullweb.firebaseapp.com",
-      databaseURL: "https://rullweb-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "rullweb",
-      storageBucket: "rullweb.firebasestorage.app",
-      messagingSenderId: "69407076508",
-      appId: "1:69407076508:web:2f06036ef3785c65bb7d59"
+      apiKey: "AIzaSyAlYkvHyxiZ_t4zwkn74C-3mOapEHURAoE",
+      authDomain: "rullviewweb.firebaseapp.com",
+      databaseURL: "https://rullviewweb-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "rullviewweb",
+      storageBucket: "rullviewweb.appspot.com",
+      messagingSenderId: "390996689902",
+      appId: "1:390996689902:web:fa734fba407dca07a404ff"
     };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Fungsi naikkan kunjungan hanya sekali
-    function increaseVisitor() {
+    // Visitor counter
+    window.addEventListener("load", () => {
       const visitorRef = db.ref("visitors/count");
       visitorRef.get().then(snapshot => {
         let count = snapshot.val() || 0;
@@ -73,23 +70,9 @@
           document.getElementById("visitorCount").textContent = count;
         });
       });
-    }
-
-    // Tampilkan kunjungan terakhir (tanpa naikin)
-    function showVisitor() {
-      db.ref("visitors/count").get().then(snapshot => {
-        document.getElementById("visitorCount").textContent = snapshot.val() || 0;
-      });
-    }
-
-    window.addEventListener("load", () => {
-      showVisitor();
-      // Delay sedikit biar pasti 1x
-      setTimeout(() => {
-        increaseVisitor();
-      }, 300);
     });
 
+    // Check password
     function checkPassword() {
       const input = document.getElementById("passwordInput").value.trim();
       const passRef = db.ref("passwords/" + input);
