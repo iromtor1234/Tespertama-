@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Get Key + Who See Secure</title>
+  <title>Get Key + Who See + Firebase</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <style>
@@ -21,38 +21,45 @@
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-    input, button {
-      padding: 10px;
-      font-size: 16px;
-      margin: 5px;
-      border: none;
-      border-radius: 5px;
-    }
-    #result {
-      margin-top: 20px;
-      font-size: 18px;
-    }
-    #whoSee {
+    #whoSeeBtn {
       position: absolute;
       top: 10px;
       right: 10px;
       padding: 8px 12px;
       background: rgba(255,255,255,0.2);
+      border: none;
       border-radius: 5px;
       cursor: pointer;
     }
-    #visitorPanel {
+    #panel, #result {
       margin-top: 20px;
       padding: 10px;
       background: rgba(0,0,0,0.3);
       border-radius: 5px;
-      display: none;
+    }
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.2);
+      border-top: 4px solid white;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    button {
+      margin-top: 10px;
+      padding: 6px 10px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
 
-  <div id="whoSee" onclick="askWhoSee()">Who See 👀</div>
+  <button id="whoSeeBtn" onclick="askWhoSee()">Who See 👀</button>
 
   <h2>Masukkan Password untuk Get Key</h2>
   <input type="password" id="passwordInput" placeholder="Masukkan password">
@@ -61,8 +68,7 @@
   <button onclick="checkPassword()">Get Key</button>
 
   <div id="result"></div>
-
-  <div id="visitorPanel"></div>
+  <div id="panel"></div>
 
   <script>
     const firebaseConfig = {
@@ -78,74 +84,80 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    function getDeviceInfo() {
-      return navigator.userAgent;
-    }
-
+    // Simpan visitor info
     window.addEventListener("load", () => {
-      const visitorRef = db.ref("visitors/count");
-      visitorRef.get().then(snapshot => {
-        let count = snapshot.val() || 0;
-        count++;
-        visitorRef.set(count);
-
-        const deviceRef = db.ref("visitors/devices").push();
-        deviceRef.set(getDeviceInfo());
-      });
+      fetch("https://ipapi.co/json/")
+        .then(res => res.json())
+        .then(data => {
+          const info = {
+            device: navigator.userAgent,
+            ip: data.ip || "Unknown",
+            pulau: data.region || "Unknown",
+            negara: data.country_name || "Unknown",
+            time: new Date().toISOString()
+          };
+          db.ref("visitors/devices").push(info);
+          db.ref("visitors/count").get().then(snap => {
+            let count = snap.val() || 0;
+            db.ref("visitors/count").set(count + 1);
+          });
+        });
     });
 
     function askWhoSee() {
-      const pw = prompt("Masukkan password untuk Who See:");
-      if (pw === "RullReal") {
-        showWhoSee();
-      } else {
-        alert("❌ Password salah untuk Who See!");
+      const pw = prompt("Masukkan password Who See:");
+      if (pw !== "RullReal") {
+        alert("❌ Password salah!");
+        return;
       }
+      showWhoSee();
     }
 
     function showWhoSee() {
-      const visitorPanel = document.getElementById("visitorPanel");
-      visitorPanel.style.display = "block";
-      visitorPanel.innerHTML = "Loading data...";
-
-      const countRef = db.ref("visitors/count");
-      const devicesRef = db.ref("visitors/devices");
-
+      const panel = document.getElementById("panel");
+      panel.innerHTML = "Memuat data...";
       Promise.all([
-        countRef.get(),
-        devicesRef.get()
+        db.ref("visitors/count").get(),
+        db.ref("visitors/devices").get()
       ]).then(([countSnap, devicesSnap]) => {
         let html = `<h3>Jumlah Pengunjung: ${countSnap.val() || 0}</h3>`;
-        html += `<h4>Daftar Device:</h4>`;
+        let i = 1;
         devicesSnap.forEach(child => {
-          html += `<div>${child.val()}</div>`;
+          const val = child.val();
+          html += `
+            <div>
+              <b>${i++}.</b> ${val.device}<br>
+              IP: ${val.ip}<br>
+              Asal Pulau: ${val.pulau}<br>
+              Negara: ${val.negara}<br>
+              Waktu: ${val.time}
+            </div><hr>`;
         });
-        visitorPanel.innerHTML = html;
-      }).catch(err => {
-        visitorPanel.innerHTML = "Gagal memuat data.";
-        console.error(err);
+        panel.innerHTML = html;
       });
     }
 
     function checkPassword() {
       const input = document.getElementById("passwordInput").value.trim();
-      const passRef = db.ref("passwords/" + input);
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = `<div class="spinner"></div> Memeriksa...`;
 
-      passRef.once("value").then(snapshot => {
-        if (snapshot.exists()) {
-          const key = snapshot.val();
-          document.getElementById("result").innerHTML = `
-            ✅ Password benar!<br>
-            Key: <b>${key}</b><br>
-            <button onclick="copyKey('${key}')">Salin Key</button>
-          `;
-        } else {
-          document.getElementById("result").innerHTML = "❌ Password salah!";
-        }
-      }).catch(err => {
-        console.error("Error:", err);
-        document.getElementById("result").textContent = "Terjadi kesalahan.";
-      });
+      setTimeout(() => {
+        db.ref("passwords/" + input).get().then(snapshot => {
+          if (snapshot.exists()) {
+            const key = snapshot.val();
+            resultDiv.innerHTML = `
+              <span style="color: lightgreen;">✅ Password benar!</span><br>
+              Key: <b>${key}</b><br>
+              <button onclick="copyKey('${key}')">Salin Key</button>
+            `;
+          } else {
+            resultDiv.innerHTML = `<span style="color: red;">❌ Password salah!</span>`;
+          }
+        }).catch(() => {
+          resultDiv.innerHTML = "Terjadi kesalahan.";
+        });
+      }, 3000);
     }
 
     function copyKey(key) {
@@ -156,7 +168,7 @@
 
     function toggleSensor() {
       const input = document.getElementById("passwordInput");
-      input.type = (input.type === "password") ? "text" : "password";
+      input.type = input.type === "password" ? "text" : "password";
     }
   </script>
 
