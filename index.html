@@ -1,11 +1,7 @@
-<!DOCTYPE html><html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Key Generator</title>
-  <link rel="stylesheet" href="style.css" />
-  <script type="module" src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js"></script>
   <style>
     body {
       margin: 0;
@@ -94,8 +90,9 @@
 </head>
 <body>
   <div class="marquee">
-    <span id="limitedKeyText">[Cheat BLOODSTRIKE FUBUKI KEY 🌟👑🌟 - ✅Esp ✅Aim ✅WH 💸3Day:30K]</span>
-  </div>  <div class="container">
+    <span id="limitedKeyText">[NEW KEY]</span>
+  </div>
+  <div class="container">
     <div class="key-box">
       <h2>Masukkan Password untuk Get Key</h2>
       <div class="sensor-input">
@@ -106,16 +103,16 @@
       <p id="keyResult"></p>
       <button id="copyBtn" style="display:none">Salin Key</button>
     </div>
-  </div>  <div class="admin-box" id="adminPanel" style="display:none">
+  </div>
+  <div class="admin-box" id="adminPanel" style="display:none">
     <h2>Admin Panel</h2>
     <input type="text" id="adminPass" placeholder="Masukkan Admin Password" />
-    <button onclick="checkAdmin()">Login Admin</button><div id="adminControls" style="display:none">
-  <h3>Tambah / Edit Key</h3>
-  <input type="text" id="pwNew" placeholder="Password" />
-  <input type="text" id="keyNew" placeholder="Key" />
-  <button onclick="saveKey()">Simpan</button>
-
-  <h3>Hapus Key</h3>
+    <button onclick="checkAdmin()">Login Admin</button>
+    <div id="adminControls" style="display:none">
+      <h3>Tambah / Edit Key</h3>
+      <input type="text" id="pwNew" placeholder="Password" />
+      <input type="text" id="keyNew" placeholder="Key" />
+      <button onclick="saveKey()">Simpan</button><h3>Hapus Key</h3>
   <input type="text" id="pwDelete" placeholder="Password yang akan dihapus" />
   <button onclick="deleteKey()">Hapus</button>
 
@@ -128,9 +125,8 @@
   <ul id="visitorList"></ul>
 </div>
 
-  </div><button id="adminPanelBtn" onclick="document.getElementById('adminPanel').style.display='block'">⚙️ Admin Access</button>
-
-  <script type="module" src="app.js"></script>  <script>
+  </div>
+  <button id="adminPanelBtn" onclick="document.getElementById('adminPanel').style.display='block'">⚙️ Admin Access</button>  <script type="module" src="app.js"></script>  <script>
     document.getElementById('togglePw').onclick = () => {
       const input = document.getElementById('passwordInput');
       if (input.type === 'password') {
