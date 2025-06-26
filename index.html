@@ -106,22 +106,25 @@
     <button id="copyBtn" class="hidden" onclick="copyKey()">📋 Salin Key</button>
     <button onclick="document.getElementById('bgmusic').play()">🔊 Play Music</button>
   </div>  <div class="box" id="adminPanel" style="display:none">
-    <h3 style="text-align:center">⚙️ Admin Panel</h3>
+  <h3 style="text-align:center">⚙️ Admin Panel</h3>
+  <div id="adminLogin">
     <input type="password" id="adminPw" placeholder="Password Admin">
     <button onclick="checkAdmin()">🔓 Login</button>
-    <div id="adminControls" class="hidden">
-      <input type="text" id="newPw" placeholder="Password Baru">
-      <input type="text" id="newKey" placeholder="Key Baru">
-      <button onclick="saveKey()">💾 Simpan</button>
-      <input type="text" id="pwDelete" placeholder="Password yang ingin dihapus">
-      <button onclick="deleteKey()">🗑️ Hapus</button>
-      <input type="text" id="newMarquee" placeholder="Ubah Marquee">
-      <button onclick="changeMarquee()">🖊️ Ubah Marquee</button>
-      <button onclick="listAllKeys()">📜 Lihat Semua Key</button>
-      <ul id="keyList" style="font-size: 14px; padding-left: 20px;"></ul>
-      <h4>📡 Visitor Tracking</h4>
-      <ul id="visitorList" style="padding-left:20px;"></ul>
-    </div>
+  </div>
+  <div id="adminControls" class="hidden">
+    <input type="text" id="newPw" placeholder="Password Baru">
+    <input type="text" id="newKey" placeholder="Key Baru">
+    <button onclick="saveKey()">💾 Simpan</button>
+    <input type="text" id="pwDelete" placeholder="Password yang ingin dihapus">
+    <button onclick="deleteKey()">🗑️ Hapus</button>
+    <input type="text" id="newMarquee" placeholder="Ubah Marquee">
+    <button onclick="changeMarquee()">🖊️ Ubah Marquee</button>
+    <button onclick="listAllKeys()">📜 Lihat Semua Key</button>
+    <ul id="keyList" style="font-size: 14px; padding-left: 20px;"></ul>
+    <h4>📡 Visitor Tracking</h4>
+    <ul id="visitorList" style="padding-left:20px;"></ul>
+  </div>
+</div>
     <h3 style="text-align:center">⚙️ Admin Panel</h3>
     <input type="password" id="adminPw" placeholder="Password Admin">
     <button onclick="checkAdmin()">🔓 Login</button>
@@ -186,10 +189,14 @@
   }
 
   function checkAdmin() {
-    if (document.getElementById('adminPw').value === 'RullAdmin') {
-      document.getElementById('adminControls').classList.remove('hidden');
-      loadVisitors();
-    } else {
+  if (document.getElementById('adminPw').value === 'RullAdmin') {
+    document.getElementById('adminControls').classList.remove('hidden');
+    document.getElementById('adminLogin').style.display = 'none';
+    loadVisitors();
+  } else {
+    alert('❌ Password admin salah');
+  }
+} else {
       alert('❌ Password admin salah');
     }
   }
