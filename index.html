@@ -2,244 +2,142 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Key Manager</title>
+  <title>Key Generator</title>
+  <link rel="stylesheet" href="style.css" />
+  <script type="module" src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js"></script>
   <style>
     body {
-      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: url('https://i.ibb.co/4PgQX4F/mountain-night.png') no-repeat center center fixed;
       background-size: cover;
-      color: white;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 20px;
+      color: #fff;
+      overflow-x: hidden;
     }
-    .box {
-      background: rgba(0, 0, 0, 0.6);
-      padding: 20px;
-      border-radius: 10px;
-      max-width: 400px;
-      margin: auto;
-      margin-top: 40px;
-    }
-    input, textarea {
-      padding: 10px;
-      width: 80%;
-      margin: 10px 0;
-    }
-    button {
-      padding: 10px 20px;
-      margin-top: 10px;
-    }
-    #spinner {
-      display: none;
-      margin-top: 10px;
-    }
-    #keyBox, #errorBox, #adminMsg {
-      margin-top: 15px;
-    }
-    #scrollText {
+    .marquee {
       white-space: nowrap;
       overflow: hidden;
       box-sizing: border-box;
-      border: 2px solid #fff;
+      width: 100%;
+      background: rgba(0,0,0,0.4);
       padding: 10px;
-      margin: 20px 0;
-      background: rgba(0, 0, 0, 0.5);
+      position: fixed;
+      top: 0;
+      z-index: 999;
     }
-    #scrollText span {
+    .marquee span {
       display: inline-block;
       padding-left: 100%;
-      animation: scroll-left 15s linear infinite;
+      animation: marquee 15s linear infinite;
+      font-weight: bold;
+      font-size: 16px;
+      background: linear-gradient(45deg, red, orange, yellow, green, cyan, blue, violet);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
-    @keyframes scroll-left {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-100%); }
+    @keyframes marquee {
+      0%   { transform: translate(0, 0); }
+      100% { transform: translate(-100%, 0); }
     }
-    #listKeyBox {
-      white-space: pre-line;
-      margin-top: 20px;
-      background: rgba(255, 255, 255, 0.05);
-      padding: 10px;
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      padding-top: 60px;
+    }
+    .admin-box, .key-box {
+      background: rgba(0,0,0,0.7);
+      padding: 15px;
+      margin: 20px;
       border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
     }
-    .key-entry {
+    .sensor-input {
+      position: relative;
+    }
+    .sensor-input input {
+      width: 100%;
+      padding-right: 40px;
+      padding: 10px;
+    }
+    .toggle-sensor {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      cursor: pointer;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
       margin-top: 10px;
-      padding: 5px;
-      background: rgba(255, 255, 255, 0.1);
+      border: none;
       border-radius: 5px;
+      background-color: #28a745;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #copyBtn {
+      background-color: #007bff;
+    }
+    #adminPanelBtn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #343a40;
     }
   </style>
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
 <body>
-  <div id="scrollText"><span id="limitedKeyText">[LIMITED KEY - TODAY ONLY!]</span></div>  <div class="box">
-    <h2>Get Your Key</h2>
-    <input type="password" id="passwordInput" placeholder="Enter password" />
-    <br />
-    <button id="generateBtn">Get Key</button>
-    <div id="spinner">⏳ Loading...</div>
-    <div id="keyBox"></div>
-    <div id="errorBox" style="color: red"></div>
-  </div>  <div class="box">
-    <h2>Admin Access</h2>
-    <input type="password" id="adminPass" placeholder="Admin Password" />
-    <button onclick="loginAdmin()">Login</button><div id="adminPanel" style="display:none">
-  <h3>Tambah Key</h3>
-  <input type="text" id="newPassword" placeholder="New password" />
-  <input type="text" id="newKey" placeholder="New key" />
-  <br />
-  <button id="saveKeyBtn">Simpan Key</button>
+  <div class="marquee">
+    <span id="limitedKeyText">[Cheat BLOODSTRIKE FUBUKI KEY 🌟👑🌟 - ✅Esp ✅Aim ✅WH 💸3Day:30K]</span>
+  </div>  <div class="container">
+    <div class="key-box">
+      <h2>Masukkan Password untuk Get Key</h2>
+      <div class="sensor-input">
+        <input type="password" id="passwordInput" placeholder="Password" />
+        <span id="togglePw" class="toggle-sensor">👁</span>
+      </div>
+      <button id="generateBtn">Get Key</button>
+      <p id="keyResult"></p>
+      <button id="copyBtn" style="display:none">Salin Key</button>
+    </div>
+  </div>  <div class="admin-box" id="adminPanel" style="display:none">
+    <h2>Admin Panel</h2>
+    <input type="text" id="adminPass" placeholder="Masukkan Admin Password" />
+    <button onclick="checkAdmin()">Login Admin</button><div id="adminControls" style="display:none">
+  <h3>Tambah / Edit Key</h3>
+  <input type="text" id="pwNew" placeholder="Password" />
+  <input type="text" id="keyNew" placeholder="Key" />
+  <button onclick="saveKey()">Simpan</button>
 
-  <h3>Edit / Hapus Key</h3>
-  <div id="keyList"></div>
+  <h3>Hapus Key</h3>
+  <input type="text" id="pwDelete" placeholder="Password yang akan dihapus" />
+  <button onclick="deleteKey()">Hapus</button>
 
-  <h3>Ubah Limited Key Text</h3>
-  <input type="text" id="limitedTextInput" placeholder="Teks limited key..." />
-  <button onclick="updateLimitedText()">Update Text</button>
+  <h3>Ubah Text Limited Key</h3>
+  <input type="text" id="limitedText" placeholder="Text marquee" />
+  <button onclick="changeLimitedText()">Update</button>
 
-  <h3>Ubah Background Web</h3>
-  <input type="text" id="bgInput" placeholder="URL Gambar Background" />
-  <button onclick="updateBackground()">Update Background</button>
-
-  <h3>Ubah Background Kotak LIMITED</h3>
-  <input type="color" id="boxColorInput" value="#000000" />
-  <button onclick="updateBoxColor()">Update Box Color</button>
-
-  <h3>📍 See Locate</h3>
-  <button onclick="loadVisitors()">Lihat Pengunjung</button>
-  <div id="visitorList"></div>
-
-  <div id="adminMsg"></div>
+  <h3>Tracking Pengunjung</h3>
+  <button onclick="showVisitors()">Lihat Visitor</button>
+  <ul id="visitorList"></ul>
 </div>
 
-  </div>  <div class="box" id="listKeyBox">
-    <h3>List KEY</h3>
-    Cheat BLOODSTRIKE FUBUKI KEY 🌟👑🌟
-    ✅Esp Line
-    ✅aimbot
-    ✅Bullet Track
-    ✅No Recoil
-    ✅No Spread
-    ✅Wall Hack
-    ✅Skin Hack [New Skin Add]
-    ✅ fix bug Scope
-    ✅Fix bug skine💸Price
-3 Day 30K•3$
-7 Day 60K•6$
-14 Day 80K•8$
-30 Day 120K•12$
-1 Season 250k•25$
+  </div><button id="adminPanelBtn" onclick="document.getElementById('adminPanel').style.display='block'">⚙️ Admin Access</button>
 
-  </div>  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCldtyF1JSvBo4eBVBlYdI9pDAwM42Rb4M",
-      authDomain: "rullweb.firebaseapp.com",
-      databaseURL: "https://rullweb-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "rullweb",
-      storageBucket: "rullweb.firebasestorage.app",
-      messagingSenderId: "69407076508",
-      appId: "1:69407076508:web:2f06036ef3785c65bb7d59"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    document.getElementById("generateBtn").onclick = () => {
-      const pw = document.getElementById("passwordInput").value.trim();
-      const spinner = document.getElementById("spinner");
-      const keyBox = document.getElementById("keyBox");
-      const errorBox = document.getElementById("errorBox");
-
-      keyBox.style.display = errorBox.style.display = "none";
-      spinner.style.display = "block";
-
-      setTimeout(() => {
-        db.ref("keys/" + pw).get().then(snapshot => {
-          spinner.style.display = "none";
-          if (snapshot.exists()) {
-            keyBox.innerText = "✅ Key: " + snapshot.val().key;
-            keyBox.style.display = "block";
-          } else {
-            errorBox.innerText = "❌ Password salah atau tidak ditemukan.";
-            errorBox.style.display = "block";
-          }
-        });
-      }, 3000);
-    };
-
-    function loginAdmin() {
-      const pass = document.getElementById("adminPass").value.trim();
-      if (pass === "RullAdmin") {
-        document.getElementById("adminPanel").style.display = "block";
-        loadKeyList();
+  <script type="module" src="app.js"></script>  <script>
+    document.getElementById('togglePw').onclick = () => {
+      const input = document.getElementById('passwordInput');
+      if (input.type === 'password') {
+        input.type = 'text';
       } else {
-        alert("❌ Password Admin salah!");
-      }
-    }
-
-    document.getElementById("saveKeyBtn").onclick = () => {
-      const pw = document.getElementById("newPassword").value.trim();
-      const key = document.getElementById("newKey").value.trim();
-      if (pw && key) {
-        db.ref("keys/" + pw).set({ key: key })
-          .then(() => {
-            document.getElementById("adminMsg").textContent = "✅ Key berhasil disimpan.";
-            loadKeyList();
-          })
-          .catch(err => document.getElementById("adminMsg").textContent = "❌ Gagal menyimpan: " + err);
-      } else {
-        document.getElementById("adminMsg").textContent = "Isi semua kolom!";
+        input.type = 'password';
       }
     };
-
-    function updateLimitedText() {
-      const newText = document.getElementById("limitedTextInput").value.trim();
-      if (newText) {
-        document.getElementById("limitedKeyText").textContent = `[${newText}]`;
-      }
-    }
-
-    function updateBackground() {
-      const url = document.getElementById("bgInput").value.trim();
-      if (url) document.body.style.background = `url('${url}') no-repeat center center / cover`;
-    }
-
-    function updateBoxColor() {
-      const color = document.getElementById("boxColorInput").value;
-      document.getElementById("scrollText").style.background = color;
-    }
-
-    function loadKeyList() {
-      const list = document.getElementById("keyList");
-      list.innerHTML = "";
-      db.ref("keys").get().then(snapshot => {
-        if (snapshot.exists()) {
-          const data = snapshot.val();
-          Object.keys(data).forEach(pw => {
-            const div = document.createElement("div");
-            div.className = "key-entry";
-            div.innerHTML = `<strong>${pw}</strong>: ${data[pw].key} <button onclick="deleteKey('${pw}')">Hapus</button>`;
-            list.appendChild(div);
-          });
-        }
-      });
-    }
-
-    function deleteKey(pw) {
-      if (confirm(`Yakin ingin hapus key untuk password: ${pw}?`)) {
-        db.ref("keys/" + pw).remove().then(loadKeyList);
-      }
-    }
-
-    function loadVisitors() {
-      const out = document.getElementById("visitorList");
-      out.innerHTML = "⏳ Mengambil data...";
-      fetch("https://ipinfo.io/json?token=7004bb2c0f2233")
-        .then(res => res.json())
-        .then(data => {
-          const info = `IP: ${data.ip}<br>Negara: ${data.country}<br>Wilayah: ${data.region}<br>Lokasi: ${data.loc}<br>Provider: ${data.org}`;
-          out.innerHTML = info;
-        });
-    }
   </script></body>
 </html>
