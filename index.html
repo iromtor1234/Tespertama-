@@ -1,190 +1,245 @@
-<!DOCTYPE html>
-<html lang="id">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rull Web Access</title>
+  <title>Key Manager</title>
   <style>
-    html, body {
-      margin: 0; padding: 0; height: 100%;
-      font-family: sans-serif;
-      background: url('https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?fit=crop&w=1200&q=80') no-repeat center center fixed;
+    body {
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
       background-size: cover;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
     }
-    #container {
-      background: rgba(0,0,0,0.6);
+    .box {
+      background: rgba(0, 0, 0, 0.6);
       padding: 20px;
       border-radius: 10px;
-      width: 90%; max-width: 300px;
-      color: #fff;
-      text-align: center;
+      max-width: 400px;
+      margin: auto;
+      margin-top: 40px;
     }
-    input, button {
-      width: 100%;
-      padding: 8px;
-      margin: 5px 0;
-      border: none;
+    input, textarea {
+      padding: 10px;
+      width: 80%;
+      margin: 10px 0;
+    }
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+    }
+    #spinner {
+      display: none;
+      margin-top: 10px;
+    }
+    #keyBox, #errorBox, #adminMsg {
+      margin-top: 15px;
+    }
+    #scrollText {
+      white-space: nowrap;
+      overflow: hidden;
+      box-sizing: border-box;
+      border: 2px solid #fff;
+      padding: 10px;
+      margin: 20px 0;
+      background: rgba(0, 0, 0, 0.5);
+    }
+    #scrollText span {
+      display: inline-block;
+      padding-left: 100%;
+      animation: scroll-left 15s linear infinite;
+    }
+    @keyframes scroll-left {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-100%); }
+    }
+    #listKeyBox {
+      white-space: pre-line;
+      margin-top: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px;
+      border-radius: 10px;
+    }
+    .key-entry {
+      margin-top: 10px;
+      padding: 5px;
+      background: rgba(255, 255, 255, 0.1);
       border-radius: 5px;
     }
-    #keyBox, #errorBox {
-      display: none;
-      margin: 5px 0;
-      padding: 5px;
-      border-radius: 4px;
-    }
-    #keyBox { background: rgba(0, 128, 0, 0.5); }
-    #errorBox { background: rgba(255, 0, 0, 0.5); }
-    #copyBtn { display: none; }
   </style>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
 <body>
-  <div id="container">
-    <h3>Masukkan Password</h3>
-    <input type="password" id="passwordInput" placeholder="Password">
-    <button id="togglePwBtn">👁</button>
+  <div id="scrollText"><span id="limitedKeyText">[LIMITED KEY - TODAY ONLY!]</span></div>  <div class="box">
+    <h2>Get Your Key</h2>
+    <input type="password" id="passwordInput" placeholder="Enter password" />
+    <br />
     <button id="generateBtn">Get Key</button>
-    <button id="buyKeyBtn">Buy Key</button>
-    <div id="spinner" style="display:none;">⏳ Loading...</div>
+    <div id="spinner">⏳ Loading...</div>
     <div id="keyBox"></div>
-    <div id="errorBox"></div>
-    <button id="copyBtn">Salin Key</button>
-    <button id="accessAdminBtn">⚙️ Access Admin</button>
-    <div id="adminPanel"></div>
-  </div>
+    <div id="errorBox" style="color: red"></div>
+  </div>  <div class="box">
+    <h2>Admin Access</h2>
+    <input type="password" id="adminPass" placeholder="Admin Password" />
+    <button onclick="loginAdmin()">Login</button><div id="adminPanel" style="display:none">
+  <h3>Tambah Key</h3>
+  <input type="text" id="newPassword" placeholder="New password" />
+  <input type="text" id="newKey" placeholder="New key" />
+  <br />
+  <button id="saveKeyBtn">Simpan Key</button>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getDatabase, ref, set, push, onValue, update, remove, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+  <h3>Edit / Hapus Key</h3>
+  <div id="keyList"></div>
 
+  <h3>Ubah Limited Key Text</h3>
+  <input type="text" id="limitedTextInput" placeholder="Teks limited key..." />
+  <button onclick="updateLimitedText()">Update Text</button>
+
+  <h3>Ubah Background Web</h3>
+  <input type="text" id="bgInput" placeholder="URL Gambar Background" />
+  <button onclick="updateBackground()">Update Background</button>
+
+  <h3>Ubah Background Kotak LIMITED</h3>
+  <input type="color" id="boxColorInput" value="#000000" />
+  <button onclick="updateBoxColor()">Update Box Color</button>
+
+  <h3>📍 See Locate</h3>
+  <button onclick="loadVisitors()">Lihat Pengunjung</button>
+  <div id="visitorList"></div>
+
+  <div id="adminMsg"></div>
+</div>
+
+  </div>  <div class="box" id="listKeyBox">
+    <h3>List KEY</h3>
+    Cheat BLOODSTRIKE FUBUKI KEY 🌟👑🌟
+    ✅Esp Line
+    ✅aimbot
+    ✅Bullet Track
+    ✅No Recoil
+    ✅No Spread
+    ✅Wall Hack
+    ✅Skin Hack [New Skin Add]
+    ✅ fix bug Scope
+    ✅Fix bug skine💸Price
+3 Day 30K•3$
+7 Day 60K•6$
+14 Day 80K•8$
+30 Day 120K•12$
+1 Season 250k•25$
+
+  </div>  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCldtyF1JSvBo4eBVBlYdI9pDAwM42Rb4M",
       authDomain: "rullweb.firebaseapp.com",
       databaseURL: "https://rullweb-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "rullweb",
-      storageBucket: "rullweb.appspot.com",
+      storageBucket: "rullweb.firebasestorage.app",
       messagingSenderId: "69407076508",
       appId: "1:69407076508:web:2f06036ef3785c65bb7d59"
     };
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    onValue(ref(db, 'visitors/count'), snap => {
-      let count = snap.val() || 0;
-      set(ref(db, 'visitors/count'), count + 1);
-    });
-
-    fetch('https://ipinfo.io/json?token=7004bb2c0f2233')
-      .then(res => res.json())
-      .then(data => {
-        push(ref(db, 'visitors/detail'), {
-          ip: data.ip,
-          loc: data.loc,
-          country: data.country,
-          city: data.city
-        });
-      });
-
-    let wrongAttempts = 0, isBlocked = false;
-
-    document.getElementById("togglePwBtn").onclick = () => {
-      const pwInput = document.getElementById("passwordInput");
-      pwInput.type = pwInput.type === "password" ? "text" : "password";
-    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
     document.getElementById("generateBtn").onclick = () => {
-      if (isBlocked) return;
       const pw = document.getElementById("passwordInput").value.trim();
-      if (!pw) return alert("Isi password dulu!");
-      document.getElementById("spinner").style.display = "block";
+      const spinner = document.getElementById("spinner");
+      const keyBox = document.getElementById("keyBox");
+      const errorBox = document.getElementById("errorBox");
+
+      keyBox.style.display = errorBox.style.display = "none";
+      spinner.style.display = "block";
+
       setTimeout(() => {
-        document.getElementById("spinner").style.display = "none";
-        get(ref(db, 'keys')).then(snap => {
-          let keys = snap.val() || {};
-          let foundEntry = Object.entries(keys).find(([id,v]) => v.password === pw);
-          if (foundEntry) {
-            document.getElementById("keyBox").textContent = `Password: ${pw}\nKey: ${foundEntry[1].key}`;
-            document.getElementById("keyBox").style.display = "block";
-            document.getElementById("copyBtn").style.display = "block";
-            document.getElementById("errorBox").style.display = "none";
-            wrongAttempts = 0;
+        db.ref("keys/" + pw).get().then(snapshot => {
+          spinner.style.display = "none";
+          if (snapshot.exists()) {
+            keyBox.innerText = "✅ Key: " + snapshot.val().key;
+            keyBox.style.display = "block";
           } else {
-            wrongAttempts++;
-            document.getElementById("errorBox").textContent = "❌ Password salah!";
-            document.getElementById("errorBox").style.display = "block";
-            if (wrongAttempts >= 3) {
-              isBlocked = true;
-              document.getElementById("errorBox").textContent = "⚠️ Salah 3x! Tunggu 10 detik...";
-              disableInputs(true);
-              setTimeout(() => {
-                isBlocked = false; wrongAttempts = 0;
-                document.getElementById("errorBox").style.display = "none";
-                disableInputs(false);
-              }, 10000);
-            }
+            errorBox.innerText = "❌ Password salah atau tidak ditemukan.";
+            errorBox.style.display = "block";
           }
         });
       }, 3000);
     };
 
-    document.getElementById("copyBtn").onclick = () => {
-      const text = document.getElementById("keyBox").textContent;
-      navigator.clipboard.writeText(text).then(() => alert("✅ Key disalin!"));
-    };
-
-    document.getElementById("buyKeyBtn").onclick = () => {
-      window.open("https://t.me/ARullReal", "_blank");
-    };
-
-    document.getElementById("accessAdminBtn").onclick = async () => {
-      const pw = prompt("Masukkan password admin:");
-      if (pw === "RullAdmin") {
-        const keysSnap = await get(ref(db, 'keys'));
-        const keys = keysSnap.val() || {};
-        const adminPanel = document.getElementById("adminPanel");
-        adminPanel.innerHTML = "<h4>Admin Key List</h4>";
-        Object.entries(keys).forEach(([id, v]) => {
-          const div = document.createElement("div");
-          div.innerHTML = `
-            ${v.password} → ${v.key}
-            <button onclick="editKey('${id}')">Edit</button>
-            <button onclick="deleteKey('${id}')">Delete</button>`;
-          adminPanel.appendChild(div);
-        });
-        const addBtn = document.createElement("button");
-        addBtn.textContent = "Tambah Key";
-        addBtn.onclick = () => {
-          const pw = prompt("Password:");
-          const key = prompt("Key:");
-          push(ref(db, 'keys'), { password: pw, key: key });
-          alert("✅ Key ditambahkan");
-        };
-        adminPanel.appendChild(addBtn);
-        adminPanel.style.display = "block";
+    function loginAdmin() {
+      const pass = document.getElementById("adminPass").value.trim();
+      if (pass === "RullAdmin") {
+        document.getElementById("adminPanel").style.display = "block";
+        loadKeyList();
       } else {
-        alert("❌ Password salah!");
+        alert("❌ Password Admin salah!");
       }
-    };
-
-    window.editKey = (id) => {
-      const newKey = prompt("Masukkan key baru:");
-      update(ref(db, 'keys/' + id), { key: newKey });
-      alert("✅ Key diupdate");
-    };
-
-    window.deleteKey = (id) => {
-      if (confirm("Hapus key ini?")) {
-        remove(ref(db, 'keys/' + id));
-        alert("✅ Key dihapus");
-      }
-    };
-
-    function disableInputs(b) {
-      document.getElementById("generateBtn").disabled = b;
-      document.getElementById("passwordInput").disabled = b;
     }
-  </script>
-</body>
+
+    document.getElementById("saveKeyBtn").onclick = () => {
+      const pw = document.getElementById("newPassword").value.trim();
+      const key = document.getElementById("newKey").value.trim();
+      if (pw && key) {
+        db.ref("keys/" + pw).set({ key: key })
+          .then(() => {
+            document.getElementById("adminMsg").textContent = "✅ Key berhasil disimpan.";
+            loadKeyList();
+          })
+          .catch(err => document.getElementById("adminMsg").textContent = "❌ Gagal menyimpan: " + err);
+      } else {
+        document.getElementById("adminMsg").textContent = "Isi semua kolom!";
+      }
+    };
+
+    function updateLimitedText() {
+      const newText = document.getElementById("limitedTextInput").value.trim();
+      if (newText) {
+        document.getElementById("limitedKeyText").textContent = `[${newText}]`;
+      }
+    }
+
+    function updateBackground() {
+      const url = document.getElementById("bgInput").value.trim();
+      if (url) document.body.style.background = `url('${url}') no-repeat center center / cover`;
+    }
+
+    function updateBoxColor() {
+      const color = document.getElementById("boxColorInput").value;
+      document.getElementById("scrollText").style.background = color;
+    }
+
+    function loadKeyList() {
+      const list = document.getElementById("keyList");
+      list.innerHTML = "";
+      db.ref("keys").get().then(snapshot => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          Object.keys(data).forEach(pw => {
+            const div = document.createElement("div");
+            div.className = "key-entry";
+            div.innerHTML = `<strong>${pw}</strong>: ${data[pw].key} <button onclick="deleteKey('${pw}')">Hapus</button>`;
+            list.appendChild(div);
+          });
+        }
+      });
+    }
+
+    function deleteKey(pw) {
+      if (confirm(`Yakin ingin hapus key untuk password: ${pw}?`)) {
+        db.ref("keys/" + pw).remove().then(loadKeyList);
+      }
+    }
+
+    function loadVisitors() {
+      const out = document.getElementById("visitorList");
+      out.innerHTML = "⏳ Mengambil data...";
+      fetch("https://ipinfo.io/json?token=7004bb2c0f2233")
+        .then(res => res.json())
+        .then(data => {
+          const info = `IP: ${data.ip}<br>Negara: ${data.country}<br>Wilayah: ${data.region}<br>Lokasi: ${data.loc}<br>Provider: ${data.org}`;
+          out.innerHTML = info;
+        });
+    }
+  </script></body>
 </html>
