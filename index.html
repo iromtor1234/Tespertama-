@@ -10,9 +10,9 @@
   } else {
     panel.style.display = 'block';
   }
-}</script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-database-compat.js"></script>
-  <style>
+}function logoutAdmin() { document.getElementById('adminControls').classList.add('hidden'); document.getElementById('adminLogin').style.display = 'block'; document.getElementById('adminPw').value = ''; } </script>
+
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-database-compat.js"></script>  <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
@@ -98,8 +98,11 @@
       box-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
     }
     .hidden { display: none; }
-  </style>
-</head>
+    @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+</style></head>
 <body>
 <canvas class="snow"></canvas>
 <audio id="bgmusic" src="https://cdn.pixabay.com/download/audio/2022/03/31/audio_18f2e327a5.mp3?filename=lofi-study-112191.mp3" loop></audio><div class="marquee" style="top: 40px;">
@@ -119,7 +122,8 @@
       <input type="password" id="adminPw" placeholder="Password Admin">
       <button onclick="checkAdmin()">🔓 Login</button>
     </div>
-    <div id="adminControls" class="hidden">
+    <div id="adminControls" class="hidden" style="animation: slideIn 0.4s ease-out;">
+      <button onclick="logoutAdmin()" style="background:red; color:white;">🔒 Logout</button>
       <input type="text" id="newPw" placeholder="Password Baru">
       <input type="text" id="newKey" placeholder="Key Baru">
       <button onclick="saveKey()">💾 Simpan</button>
@@ -307,4 +311,4 @@ function listAllKeys() {
   setInterval(drawSnow, 33);
   window.onresize = () => { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; }
 </script></body>
-  </html>
+</html>
