@@ -112,7 +112,7 @@
     <p id="keyResult" style="text-align:center;"></p>
     <button id="copyBtn" class="hidden" onclick="copyKey()">📋 Salin Key</button>
     <button onclick="document.getElementById('bgmusic').play()">🔊 Play Music</button>
-  </div>  <div class="box" id="adminPanel" style="display:none">
+  </div>  <div class="box" id="adminPanel" style="display:none; position: fixed; bottom: 70px; right: 15px; z-index: 999;">
   <h3 style="text-align:center">⚙️ Admin Panel</h3>
   <div id="adminLogin">
     <input type="password" id="adminPw" placeholder="Password Admin">
@@ -147,7 +147,7 @@
       <ul id="visitorList" style="padding-left:20px;"></ul>
     </div>
   </div>
-</div><button id="adminBtn" onclick="toggleAdminPanel()">⚙️</button>
+</div><button id="adminBtn" onclick="toggleAdminPanel()" style="position: fixed; bottom: 15px; right: 15px; z-index: 1000; width: 48px; height: 48px; border-radius: 50%; font-size: 20px; background: linear-gradient(135deg, #000000, #444444); color: #fff; border: none;">⚙️</button>
 
 <script>
   const firebaseConfig = {
