@@ -2,185 +2,244 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Key Generator Admin Panel</title>
-  <script type="module" src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js"></script>
+  <title>Rull Key Generator</title>
   <style>
+    * {margin: 0; padding: 0; box-sizing: border-box;}
     body {
-      margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: url('https://i.ibb.co/yFX8YDw/fuji.png') no-repeat center center fixed;
+      background: url('https://i.ibb.co/4PgQX4F/mountain-night.png') no-repeat center center fixed;
       background-size: cover;
       color: #fff;
       overflow-x: hidden;
     }
+    .container {
+      padding: 20px;
+      text-align: center;
+    }
     .marquee {
-      white-space: nowrap;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 8px;
       overflow: hidden;
-      width: 100%;
-      background: rgba(0,0,0,0.6);
-      padding: 10px;
-      position: fixed;
-      top: 0;
-      z-index: 999;
+      white-space: nowrap;
     }
     .marquee span {
       display: inline-block;
       padding-left: 100%;
       animation: marquee 15s linear infinite;
+      background: linear-gradient(45deg, red, yellow, green, cyan, blue, magenta);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
       font-weight: bold;
-      font-size: 16px;
-      color: #0ff;
     }
     @keyframes marquee {
       0% { transform: translate(0, 0); }
       100% { transform: translate(-100%, 0); }
     }
-    .container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      padding-top: 60px;
-    }
-    .admin-box, .key-box {
-      background: rgba(0,0,0,0.7);
-      padding: 15px;
-      margin: 20px;
+    .box {
+      background: rgba(0,0,0,0.6);
       border-radius: 10px;
+      padding: 20px;
+      margin-top: 20px;
       width: 90%;
-      max-width: 360px;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
     }
-    .sensor-input {
-      position: relative;
-    }
-    .sensor-input input {
-      width: 100%;
-      padding: 10px 40px 10px 10px;
-    }
-    .toggle-sensor {
-      position: absolute;
-      right: 10px;
-      top: 10px;
-      cursor: pointer;
-    }
-    button {
+    input, select, textarea {
       width: 100%;
       padding: 10px;
-      margin-top: 10px;
-      border: none;
+      margin: 10px 0;
       border-radius: 5px;
-      background-color: #28a745;
+      border: none;
+    }
+    button {
+      padding: 10px 20px;
+      background: #28a745;
+      border: none;
       color: #fff;
       font-weight: bold;
+      border-radius: 5px;
+      margin: 5px;
       cursor: pointer;
-    }
-    #copyBtn {
-      background-color: #007bff;
     }
     #adminPanelBtn {
       position: fixed;
       bottom: 10px;
       right: 10px;
-      background: #343a40;
-      z-index: 1000;
+      background: #333;
     }
-    audio { display: none; }
-    canvas#snow { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+    .hidden {display: none;}
+    .toast {
+      position: fixed;
+      bottom: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 20px;
+      color: #fff;
+      border-radius: 5px;
+      opacity: 0;
+      transition: all 0.3s ease-in-out;
+    }
+    .toast.show {opacity: 1;}
+    #snowfall canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 999;
+    }
   </style>
 </head>
 <body>
-  <canvas id="snow"></canvas>
-  <audio id="bgMusic" autoplay loop>
-    <source src="https://files.catbox.moe/ylp7ta.mp3" type="audio/mpeg">
-  </audio>
-  <div class="marquee">
-    <span id="limitedKeyText">[NEW KEY]</span>
-  </div>
-  <div class="container">
-    <div class="key-box">
-      <h2>Masukkan Password untuk Get Key</h2>
-      <div class="sensor-input">
-        <input type="password" id="passwordInput" placeholder="Password" />
-        <span id="togglePw" class="toggle-sensor">👁</span>
-      </div>
-      <button id="generateBtn">Get Key</button>
-      <p id="keyResult"></p>
-      <button id="copyBtn" style="display:none">Salin Key</button>
+<div id="snowfall"></div>
+<div class="marquee">
+  <span id="marqueeText">[NEW KEY - BLOODSTRIKE FUBUKI v3]</span>
+</div>
+<div class="container">
+  <div class="box">
+    <h2>Masukkan Password</h2>
+    <input type="password" id="passwordInput" placeholder="Password">
+    <button onclick="generateKey()">Get Key</button>
+    <div id="keyBox" class="hidden">
+      <p id="keyDisplay"></p>
+      <button onclick="copyKey()">Salin Key</button>
     </div>
+    <p id="errorBox" class="hidden" style="color:red;"></p>
+  </div>  <div class="box">
+    <h3>🎮 List Key & Harga</h3>
+    <p>Cheat BLOODSTRIKE FUBUKI KEY 🌟👑🌟</p>
+    <ul style="text-align:left">
+      <li>✅ Esp Line</li>
+      <li>✅ Aimbot</li>
+      <li>✅ Bullet Track</li>
+      <li>✅ No Recoil</li>
+      <li>✅ No Spread</li>
+      <li>✅ Wall Hack</li>
+      <li>✅ Skin Hack [New Skin]</li>
+      <li>✅ Fix Bug Scope & Skin</li>
+    </ul>
+    <p>💸 Price:</p>
+    <p>3 Day: 30K / $3<br>7 Day: 60K / $6<br>14 Day: 80K / $8<br>30 Day: 120K / $12<br>Season: 250K / $25</p>
   </div>
-  <div class="admin-box" id="adminPanel" style="display:none">
-    <h2>Admin Panel</h2>
-    <input type="text" id="adminPass" placeholder="Masukkan Admin Password" />
-    <button onclick="checkAdmin()">Login Admin</button>
-    <div id="adminControls" style="display:none">
-      <h3>Tambah / Edit Key</h3>
-      <input type="text" id="pwNew" placeholder="Password" />
-      <input type="text" id="keyNew" placeholder="Key" />
-      <button onclick="saveKey()">Simpan</button>
-      <h3>Hapus Key</h3>
-      <input type="text" id="pwDelete" placeholder="Password yang akan dihapus" />
-      <button onclick="deleteKey()">Hapus</button>
-      <h3>Ubah Text Limited Key</h3>
-      <input type="text" id="limitedText" placeholder="Text marquee" />
-      <button onclick="changeLimitedText()">Update</button>
-      <h3>Ubah Background</h3>
-      <input type="text" id="bgUrl" placeholder="Link Gambar PNG" />
-      <button onclick="changeBg()">Ganti Background</button>
-      <h3>Tracking Pengunjung</h3>
-      <button onclick="showVisitors()">Lihat Visitor</button>
-      <ul id="visitorList"></ul>
-    </div>
+</div><!-- Admin Access --><div class="box hidden" id="adminPanel">
+  <h3>Admin Panel</h3>
+  <input type="password" id="adminPassword" placeholder="Password Admin">
+  <button onclick="loginAdmin()">Masuk</button>  <div id="adminControls" class="hidden">
+    <h4>Tambah / Edit / Hapus Key</h4>
+    <input type="text" id="newPw" placeholder="Password">
+    <input type="text" id="newKey" placeholder="Key">
+    <button onclick="saveKey()">Simpan</button>
+    <input type="text" id="deletePw" placeholder="Password yang akan dihapus">
+    <button onclick="deleteKey()">Hapus</button><h4>Update Marquee</h4>
+<input type="text" id="marqueeInput" placeholder="Text Marquee">
+<button onclick="updateMarquee()">Update</button>
+
+<h4>Ubah Background</h4>
+<input type="text" id="bgInput" placeholder="Link Gambar">
+<button onclick="changeBackground()">Ganti</button>
+
   </div>
-  <button id="adminPanelBtn" onclick="document.getElementById('adminPanel').style.display='block'">⚙️ Admin Access</button>  <script type="module" src="app.js"></script>  <script>
-    document.getElementById('togglePw').onclick = () => {
-      const input = document.getElementById('passwordInput');
-      input.type = input.type === 'password' ? 'text' : 'password';
-    };
-    function changeBg() {
-      const url = document.getElementById('bgUrl').value;
-      if (url) document.body.style.backgroundImage = `url('${url}')`;
+</div><button id="adminPanelBtn" onclick="document.getElementById('adminPanel').classList.toggle('hidden')">⚙️ Admin Access</button> <audio id="bgMusic" loop> <source src="https://files.catbox.moe/f4tffp.mp3" type="audio/mp3"> </audio>
+
+<script>
+// Simpan key
+let keys = JSON.parse(localStorage.getItem("rull_keys")) || [];
+function generateKey() {
+  const pw = document.getElementById("passwordInput").value;
+  const match = keys.find(k => k.password === pw);
+  document.getElementById("keyBox").classList.add("hidden");
+  document.getElementById("errorBox").classList.add("hidden");
+
+  setTimeout(() => {
+    if (match) {
+      document.getElementById("keyDisplay").textContent = match.key;
+      document.getElementById("keyBox").classList.remove("hidden");
+    } else {
+      document.getElementById("errorBox").textContent = "Password salah!";
+      document.getElementById("errorBox").classList.remove("hidden");
     }
-    function changeLimitedText() {
-      const text = document.getElementById('limitedText').value;
-      if (text) document.getElementById('limitedKeyText').textContent = `[${text}]`;
+  }, 3000);
+}
+function copyKey() {
+  navigator.clipboard.writeText(document.getElementById("keyDisplay").textContent);
+  alert("✅ Key disalin!");
+}
+function loginAdmin() {
+  const pw = document.getElementById("adminPassword").value;
+  if (pw === "RullAdmin") {
+    document.getElementById("adminControls").classList.remove("hidden");
+  } else {
+    alert("❌ Salah password admin");
+  }
+}
+function saveKey() {
+  const pw = document.getElementById("newPw").value;
+  const key = document.getElementById("newKey").value;
+  if (pw && key) {
+    keys = keys.filter(k => k.password !== pw);
+    keys.push({ password: pw, key });
+    localStorage.setItem("rull_keys", JSON.stringify(keys));
+    alert("✅ Key disimpan");
+  }
+}
+function deleteKey() {
+  const delPw = document.getElementById("deletePw").value;
+  keys = keys.filter(k => k.password !== delPw);
+  localStorage.setItem("rull_keys", JSON.stringify(keys));
+  alert("🗑️ Key dihapus");
+}
+function updateMarquee() {
+  const txt = document.getElementById("marqueeInput").value;
+  if (txt) {
+    document.getElementById("marqueeText").textContent = `[${txt}]`;
+  }
+}
+function changeBackground() {
+  const link = document.getElementById("bgInput").value;
+  if (link) {
+    document.body.style.backgroundImage = `url('${link}')`;
+  }
+}
+
+// Snowfall
+let snowContainer = document.getElementById("snowfall");
+let canvas = document.createElement("canvas");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+snowContainer.appendChild(canvas);
+let ctx = canvas.getContext("2d");
+let flakes = [];
+for (let i = 0; i < 100; i++) {
+  flakes.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*3+1, d: Math.random()*1});
+}
+function drawFlakes() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "white";
+  ctx.beginPath();
+  for (let i = 0; i < flakes.length; i++) {
+    let f = flakes[i];
+    ctx.moveTo(f.x, f.y);
+    ctx.arc(f.x, f.y, f.r, 0, Math.PI*2, true);
+  }
+  ctx.fill();
+  moveFlakes();
+}
+function moveFlakes() {
+  for (let i = 0; i < flakes.length; i++) {
+    let f = flakes[i];
+    f.y += f.d;
+    if (f.y > canvas.height) {
+      f.y = 0;
+      f.x = Math.random()*canvas.width;
     }
-    // Snowfall effect
-    const canvas = document.getElementById('snow');
-    const ctx = canvas.getContext('2d');
-    let width, height;
-    const snowflakes = [];
-    function resize() {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resize);
-    resize();
-    function createSnowflake() {
-      snowflakes.push({
-        x: Math.random() * width,
-        y: 0,
-        radius: Math.random() * 4 + 1,
-        speed: Math.random() * 1 + 0.5
-      });
-    }
-    function drawSnowflakes() {
-      ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = '#fff';
-      snowflakes.forEach((flake, i) => {
-        ctx.beginPath();
-        ctx.arc(flake.x, flake.y, flake.radius, 0, Math.PI * 2);
-        ctx.fill();
-        flake.y += flake.speed;
-        if (flake.y > height) snowflakes.splice(i, 1);
-      });
-    }
-    setInterval(createSnowflake, 200);
-    function animate() {
-      drawSnowflakes();
-      requestAnimationFrame(animate);
-    }
-    animate();
-  </script></body>
+  }
+}
+setInterval(drawFlakes, 25);
+
+// Musik saat masuk
+window.onload = function () {
+  const music = document.getElementById("bgMusic");
+  music.play().catch(() => {});
+}
+</script></body>
 </html>
