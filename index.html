@@ -112,12 +112,28 @@
     <p id="keyResult" style="text-align:center;"></p>
     <button id="copyBtn" class="hidden" onclick="copyKey()">📋 Salin Key</button>
     <button onclick="document.getElementById('bgmusic').play()">🔊 Play Music</button>
-  </div>  <div class="box" id="adminPanel" style="display:none; position: fixed; bottom: 70px; right: 15px; z-index: 999;">
-  <h3 style="text-align:center">⚙️ Admin Panel</h3>
-  <div id="adminLogin">
-    <input type="password" id="adminPw" placeholder="Password Admin">
-    <button onclick="checkAdmin()">🔓 Login</button>
+  </div>  <div class="box" id="adminPanelWrapper" style="display:none; position: fixed; bottom: 70px; right: 15px; z-index: 999;">
+  <div class="box" id="adminPanel">
+    <h3 style="text-align:center">⚙️ Admin Panel</h3>
+    <div id="adminLogin">
+      <input type="password" id="adminPw" placeholder="Password Admin">
+      <button onclick="checkAdmin()">🔓 Login</button>
+    </div>
+    <div id="adminControls" class="hidden">
+      <input type="text" id="newPw" placeholder="Password Baru">
+      <input type="text" id="newKey" placeholder="Key Baru">
+      <button onclick="saveKey()">💾 Simpan</button>
+      <input type="text" id="pwDelete" placeholder="Password yang ingin dihapus">
+      <button onclick="deleteKey()">🗑️ Hapus</button>
+      <input type="text" id="newMarquee" placeholder="Ubah Marquee">
+      <button onclick="changeMarquee()">🖊️ Ubah Marquee</button>
+      <button onclick="listAllKeys()">📜 Lihat Semua Key</button>
+      <ul id="keyList" style="font-size: 14px; padding-left: 20px;"></ul>
+      <h4>📡 Visitor Tracking</h4>
+      <ul id="visitorList" style="padding-left:20px;"></ul>
+    </div>
   </div>
+</div>
   <div id="adminControls" class="hidden">
     <input type="text" id="newPw" placeholder="Password Baru">
     <input type="text" id="newKey" placeholder="Key Baru">
@@ -150,6 +166,10 @@
 </div><button id="adminBtn" onclick="toggleAdminPanel()" style="position: fixed; bottom: 15px; right: 15px; z-index: 1000; width: 48px; height: 48px; border-radius: 50%; font-size: 20px; background: linear-gradient(135deg, #000000, #444444); color: #fff; border: none;">⚙️</button>
 
 <script>
+function toggleAdminPanel() {
+  const panel = document.getElementById('adminPanelWrapper');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
   const firebaseConfig = {
     apiKey: "AIzaSyCldtyF1JSvBo4eBVBlYdI9pDAwM42Rb4M",
     authDomain: "rullweb.firebaseapp.com",
@@ -287,4 +307,4 @@ function listAllKeys() {
   setInterval(drawSnow, 33);
   window.onresize = () => { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; }
 </script></body>
-</html>
+  </html>
