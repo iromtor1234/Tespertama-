@@ -1,277 +1,186 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Rull Key Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Key Generator Admin Panel</title>
   <script type="module" src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js"></script>
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: url('https://i.ibb.co/4PgQX4F/mountain-night.png') no-repeat center center fixed;
+      background: url('https://i.ibb.co/yFX8YDw/fuji.png') no-repeat center center fixed;
       background-size: cover;
+      color: #fff;
       overflow-x: hidden;
-      color: white;
     }
-
     .marquee {
+      white-space: nowrap;
+      overflow: hidden;
+      width: 100%;
       background: rgba(0,0,0,0.6);
       padding: 10px;
       position: fixed;
       top: 0;
-      width: 100%;
-      overflow: hidden;
-      white-space: nowrap;
-      z-index: 10;
+      z-index: 999;
     }
-
     .marquee span {
       display: inline-block;
       padding-left: 100%;
-      animation: scroll 12s linear infinite;
+      animation: marquee 15s linear infinite;
       font-weight: bold;
       font-size: 16px;
-      background: linear-gradient(45deg, #f00, #0f0, #00f, #ff0, #0ff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      color: #0ff;
     }
-
-    @keyframes scroll {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-100%); }
+    @keyframes marquee {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(-100%, 0); }
     }
-
     .container {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 90vh;
-      text-align: center;
+      height: 100vh;
+      padding-top: 60px;
     }
-
-    .box {
-      background: rgba(0, 0, 0, 0.6);
-      padding: 20px;
-      border-radius: 12px;
-      max-width: 400px;
+    .admin-box, .key-box {
+      background: rgba(0,0,0,0.7);
+      padding: 15px;
+      margin: 20px;
+      border-radius: 10px;
       width: 90%;
-      margin-top: 80px;
+      max-width: 360px;
     }
-
-    input[type="password"], input[type="text"] {
-      width: 100%;
-      padding: 10px;
-      margin-top: 8px;
-      border-radius: 6px;
-      border: none;
-      font-size: 16px;
+    .sensor-input {
+      position: relative;
     }
-
-    button {
-      margin-top: 10px;
-      padding: 10px;
+    .sensor-input input {
       width: 100%;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-      background: #00c9ff;
-      color: white;
+      padding: 10px 40px 10px 10px;
+    }
+    .toggle-sensor {
+      position: absolute;
+      right: 10px;
+      top: 10px;
       cursor: pointer;
     }
-
-    #keyResult {
+    button {
+      width: 100%;
+      padding: 10px;
       margin-top: 10px;
+      border: none;
+      border-radius: 5px;
+      background-color: #28a745;
+      color: #fff;
       font-weight: bold;
+      cursor: pointer;
     }
-
-    .admin-box {
-      display: none;
-      background: rgba(0,0,0,0.6);
-      padding: 20px;
-      border-radius: 10px;
-      margin-top: 20px;
+    #copyBtn {
+      background-color: #007bff;
     }
-
-    .admin-btn {
+    #adminPanelBtn {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: #444;
-      border-radius: 50%;
-      padding: 15px;
-      font-size: 20px;
+      bottom: 10px;
+      right: 10px;
+      background: #343a40;
+      z-index: 1000;
     }
-
-    canvas.snow {
-      position: fixed;
-      top: 0;
-      left: 0;
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    audio {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-    }
+    audio { display: none; }
+    canvas#snow { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
   </style>
 </head>
 <body>
-  <canvas id="snow" class="snow"></canvas>
-
+  <canvas id="snow"></canvas>
+  <audio id="bgMusic" autoplay loop>
+    <source src="https://files.catbox.moe/ylp7ta.mp3" type="audio/mpeg">
+  </audio>
   <div class="marquee">
-    <span id="marqueeText">[NEW KEY]</span>
+    <span id="limitedKeyText">[NEW KEY]</span>
   </div>
-
   <div class="container">
-    <div class="box">
+    <div class="key-box">
       <h2>Masukkan Password untuk Get Key</h2>
-      <input type="password" id="passwordInput" placeholder="Password" />
-      <button onclick="togglePw()">👁 Show/Hide</button>
-      <button onclick="getKey()">🎯 Get Key</button>
-      <p id="keyResult"></p>
-      <button id="copyBtn" onclick="copyKey()" style="display:none">📋 Salin Key</button>
-    </div>
-
-    <div id="adminPanel" class="admin-box">
-      <h3>Admin Panel</h3>
-      <input type="password" id="adminPass" placeholder="Admin Password" />
-      <button onclick="checkAdmin()">🔐 Login</button>
-      <div id="adminContent" style="display:none">
-        <input type="text" id="newPw" placeholder="Password Baru" />
-        <input type="text" id="newKey" placeholder="Key Baru" />
-        <button onclick="saveKey()">💾 Simpan Key</button>
-
-        <input type="text" id="delPw" placeholder="Password yang Dihapus" />
-        <button onclick="deleteKey()">🗑 Hapus Key</button>
-
-        <input type="text" id="newText" placeholder="Text LIMITED KEY" />
-        <button onclick="updateMarquee()">✨ Update Text</button>
+      <div class="sensor-input">
+        <input type="password" id="passwordInput" placeholder="Password" />
+        <span id="togglePw" class="toggle-sensor">👁</span>
       </div>
+      <button id="generateBtn">Get Key</button>
+      <p id="keyResult"></p>
+      <button id="copyBtn" style="display:none">Salin Key</button>
     </div>
   </div>
-
-  <button class="admin-btn" onclick="document.getElementById('adminPanel').style.display='block'">⚙️</button>
-
-  <audio id="music" src="https://cdn.pixabay.com/download/audio/2023/03/29/audio_f3a3eabb43.mp3" controls loop></audio>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
-    import { getDatabase, ref, get, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCldtyF1JSvBo4eBVBlYdI9pDAwM42Rb4M",
-      authDomain: "rullweb.firebaseapp.com",
-      databaseURL: "https://rullweb-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "rullweb",
-      storageBucket: "rullweb.appspot.com",
-      messagingSenderId: "69407076508",
-      appId: "1:69407076508:web:2f06036ef3785c65bb7d59"
+  <div class="admin-box" id="adminPanel" style="display:none">
+    <h2>Admin Panel</h2>
+    <input type="text" id="adminPass" placeholder="Masukkan Admin Password" />
+    <button onclick="checkAdmin()">Login Admin</button>
+    <div id="adminControls" style="display:none">
+      <h3>Tambah / Edit Key</h3>
+      <input type="text" id="pwNew" placeholder="Password" />
+      <input type="text" id="keyNew" placeholder="Key" />
+      <button onclick="saveKey()">Simpan</button>
+      <h3>Hapus Key</h3>
+      <input type="text" id="pwDelete" placeholder="Password yang akan dihapus" />
+      <button onclick="deleteKey()">Hapus</button>
+      <h3>Ubah Text Limited Key</h3>
+      <input type="text" id="limitedText" placeholder="Text marquee" />
+      <button onclick="changeLimitedText()">Update</button>
+      <h3>Ubah Background</h3>
+      <input type="text" id="bgUrl" placeholder="Link Gambar PNG" />
+      <button onclick="changeBg()">Ganti Background</button>
+      <h3>Tracking Pengunjung</h3>
+      <button onclick="showVisitors()">Lihat Visitor</button>
+      <ul id="visitorList"></ul>
+    </div>
+  </div>
+  <button id="adminPanelBtn" onclick="document.getElementById('adminPanel').style.display='block'">⚙️ Admin Access</button>  <script type="module" src="app.js"></script>  <script>
+    document.getElementById('togglePw').onclick = () => {
+      const input = document.getElementById('passwordInput');
+      input.type = input.type === 'password' ? 'text' : 'password';
     };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    let isAdmin = false;
-
-    window.getKey = async () => {
-      const pw = document.getElementById('passwordInput').value;
-      const snap = await get(ref(db, 'keys/' + pw));
-      if (snap.exists()) {
-        const key = snap.val();
-        document.getElementById('keyResult').textContent = "🔑 Key: " + key;
-        document.getElementById('copyBtn').style.display = 'block';
-        document.getElementById('copyBtn').setAttribute("data-key", key);
-      } else {
-        document.getElementById('keyResult').textContent = "❌ Password tidak ditemukan";
-      }
-    };
-
-    window.copyKey = () => {
-      const key = document.getElementById('copyBtn').getAttribute("data-key");
-      navigator.clipboard.writeText(key);
-      alert("Key berhasil disalin!");
-    };
-
-    window.togglePw = () => {
-      const input = document.getElementById("passwordInput");
-      input.type = input.type === "password" ? "text" : "password";
-    };
-
-    window.checkAdmin = () => {
-      const input = document.getElementById("adminPass").value;
-      if (input === "RullAdmin") {
-        isAdmin = true;
-        document.getElementById("adminContent").style.display = "block";
-        alert("Login berhasil!");
-      } else {
-        alert("Password Admin salah!");
-      }
-    };
-
-    window.saveKey = () => {
-      if (!isAdmin) return alert("Bukan Admin!");
-      const pw = document.getElementById("newPw").value;
-      const key = document.getElementById("newKey").value;
-      set(ref(db, 'keys/' + pw), key);
-      alert("Key disimpan!");
-    };
-
-    window.deleteKey = () => {
-      if (!isAdmin) return alert("Bukan Admin!");
-      const pw = document.getElementById("delPw").value;
-      remove(ref(db, 'keys/' + pw));
-      alert("Key dihapus!");
-    };
-
-    window.updateMarquee = () => {
-      const txt = document.getElementById("newText").value;
-      document.getElementById("marqueeText").textContent = `[${txt}]`;
-    };
-  </script>
-
-  <script>
-    const canvas = document.getElementById("snow");
-    const ctx = canvas.getContext("2d");
-    let width = window.innerWidth;
-    let height = window.innerHeight;
-    canvas.width = width;
-    canvas.height = height;
-
-    let flakes = Array.from({length: 100}, () => ({
-      x: Math.random() * width,
-      y: Math.random() * height,
-      r: Math.random() * 3 + 1,
-      d: Math.random() * 1
-    }));
-
-    function drawFlakes() {
+    function changeBg() {
+      const url = document.getElementById('bgUrl').value;
+      if (url) document.body.style.backgroundImage = `url('${url}')`;
+    }
+    function changeLimitedText() {
+      const text = document.getElementById('limitedText').value;
+      if (text) document.getElementById('limitedKeyText').textContent = `[${text}]`;
+    }
+    // Snowfall effect
+    const canvas = document.getElementById('snow');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    const snowflakes = [];
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+    function createSnowflake() {
+      snowflakes.push({
+        x: Math.random() * width,
+        y: 0,
+        radius: Math.random() * 4 + 1,
+        speed: Math.random() * 1 + 0.5
+      });
+    }
+    function drawSnowflakes() {
       ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = "white";
-      ctx.beginPath();
-      for (let f of flakes) {
-        ctx.moveTo(f.x, f.y);
-        ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2, true);
-      }
-      ctx.fill();
-      moveFlakes();
+      ctx.fillStyle = '#fff';
+      snowflakes.forEach((flake, i) => {
+        ctx.beginPath();
+        ctx.arc(flake.x, flake.y, flake.radius, 0, Math.PI * 2);
+        ctx.fill();
+        flake.y += flake.speed;
+        if (flake.y > height) snowflakes.splice(i, 1);
+      });
     }
-
-    function moveFlakes() {
-      for (let f of flakes) {
-        f.y += f.d;
-        if (f.y > height) {
-          f.y = 0;
-          f.x = Math.random() * width;
-        }
-      }
+    setInterval(createSnowflake, 200);
+    function animate() {
+      drawSnowflakes();
+      requestAnimationFrame(animate);
     }
-
-    setInterval(drawFlakes, 30);
-  </script>
-</body>
+    animate();
+  </script></body>
 </html>
