@@ -9,7 +9,7 @@
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: url('https://i.ibb.co/4PgQX4F/mountain-night.png') no-repeat center center fixed;
+      background: url('https://i.ibb.co/WxFVLDR/mountain-full.png') no-repeat center center fixed;
       background-size: cover;
       color: #fff;
     }
@@ -43,32 +43,44 @@
       padding-top: 80px;
     }
     .box {
-      background: rgba(0,0,0,0.7);
+      background: rgba(0,0,0,0.75);
       padding: 20px;
       margin: 15px;
-      border-radius: 10px;
+      border-radius: 12px;
       width: 90%;
       max-width: 400px;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+      backdrop-filter: blur(8px);
     }
     input, button {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       margin-top: 10px;
-      border-radius: 5px;
+      border-radius: 8px;
       border: none;
+      font-size: 1rem;
     }
     button {
-      background-color: #28a745;
+      background: linear-gradient(135deg, #00f260, #0575e6);
       color: white;
       font-weight: bold;
+      transition: all 0.3s ease;
     }
-    #copyBtn { background-color: #007bff; }
+    button:hover {
+      filter: brightness(1.1);
+      transform: scale(1.02);
+    }
+    #copyBtn { background: linear-gradient(135deg, #f7971e, #ffd200); }
     #adminBtn {
       position: fixed;
       bottom: 15px;
       right: 15px;
-      background: #343a40;
-      font-size: 14px;
+      background: linear-gradient(135deg, #333333, #dd1818);
+      color: #fff;
+      font-size: 16px;
+      padding: 12px 16px;
+      border-radius: 50px;
+      box-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
     }
     .hidden { display: none; }
   </style>
@@ -78,28 +90,28 @@
   <span id="marqueeText">[NEW KEY - Rull FUBUKI CHEAT ✅ ESP ✅ AIM ✅ WH 💸 30K]</span>
 </div><div class="container">
   <div class="box">
-    <h2>Masukkan Password</h2>
+    <h2 style="text-align:center">🔐 Masukkan Password</h2>
     <input type="password" id="passwordInput" placeholder="Password">
-    <button onclick="getKey()">Get Key</button>
-    <p id="keyResult"></p>
-    <button id="copyBtn" class="hidden" onclick="copyKey()">Salin Key</button>
+    <button onclick="getKey()">🎯 Get Key</button>
+    <p id="keyResult" style="text-align:center;"></p>
+    <button id="copyBtn" class="hidden" onclick="copyKey()">📋 Salin Key</button>
   </div>  <div class="box" id="adminPanel" style="display:none">
-    <h3>Admin Access</h3>
-    <input type="password" id="adminPw" placeholder="Admin Password">
-    <button onclick="checkAdmin()">Login</button>
+    <h3 style="text-align:center">⚙️ Admin Panel</h3>
+    <input type="password" id="adminPw" placeholder="Password Admin">
+    <button onclick="checkAdmin()">🔓 Login</button>
     <div id="adminControls" class="hidden">
       <input type="text" id="newPw" placeholder="Password Baru">
       <input type="text" id="newKey" placeholder="Key Baru">
-      <button onclick="saveKey()">Simpan</button>
+      <button onclick="saveKey()">💾 Simpan</button>
       <input type="text" id="pwDelete" placeholder="Password yang ingin dihapus">
-      <button onclick="deleteKey()">Hapus</button>
+      <button onclick="deleteKey()">🗑️ Hapus</button>
       <input type="text" id="newMarquee" placeholder="Ubah Marquee">
-      <button onclick="changeMarquee()">Ubah Marquee</button>
-      <h4>Tracking Pengunjung</h4>
-      <ul id="visitorList"></ul>
+      <button onclick="changeMarquee()">🖊️ Ubah Marquee</button>
+      <h4>📡 Visitor Tracking</h4>
+      <ul id="visitorList" style="padding-left:20px;"></ul>
     </div>
   </div>
-</div><button id="adminBtn" onclick="document.getElementById('adminPanel').style.display='block'">⚙️ Admin</button>
+</div><button id="adminBtn" onclick="document.getElementById('adminPanel').style.display='block'">⚙️</button>
 
 <script>
   const firebaseConfig = {
@@ -114,6 +126,21 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
+  fetch("https://ipinfo.io/json?token=7004bb2c0f2233")
+    .then(res => res.json())
+    .then(data => {
+      const ip = data.ip || "unknown";
+      const info = {
+        device: navigator.userAgent,
+        country: data.country,
+        region: data.region,
+        org: data.org,
+        ip: ip,
+        loc: data.loc
+      };
+      firebase.database().ref("visitors/" + ip.replaceAll('.', '_')).set(info);
+    });
+
   function getKey() {
     const pw = document.getElementById('passwordInput').value;
     db.ref('keys/' + pw).get().then(snap => {
@@ -121,7 +148,7 @@
         document.getElementById('keyResult').textContent = 'Key: ' + snap.val();
         document.getElementById('copyBtn').classList.remove('hidden');
       } else {
-        document.getElementById('keyResult').textContent = 'Password salah';
+        document.getElementById('keyResult').textContent = '❌ Password salah';
         document.getElementById('copyBtn').classList.add('hidden');
       }
     });
@@ -129,7 +156,7 @@
 
   function copyKey() {
     navigator.clipboard.writeText(document.getElementById('keyResult').textContent);
-    alert('Key berhasil disalin!');
+    alert('✅ Key berhasil disalin!');
   }
 
   function checkAdmin() {
@@ -137,7 +164,7 @@
       document.getElementById('adminControls').classList.remove('hidden');
       loadVisitors();
     } else {
-      alert('Password admin salah');
+      alert('❌ Password admin salah');
     }
   }
 
@@ -145,13 +172,13 @@
     const pw = document.getElementById('newPw').value;
     const key = document.getElementById('newKey').value;
     db.ref('keys/' + pw).set(key);
-    alert('Key disimpan');
+    alert('✅ Key disimpan');
   }
 
   function deleteKey() {
     const pw = document.getElementById('pwDelete').value;
     db.ref('keys/' + pw).remove();
-    alert('Key dihapus');
+    alert('🗑️ Key dihapus');
   }
 
   function changeMarquee() {
@@ -166,7 +193,7 @@
         list.innerHTML = '';
         Object.entries(snap.val()).forEach(([ip, data]) => {
           const li = document.createElement('li');
-          li.textContent = `${data.device || 'device'} - ${data.country || 'Negara'} - ${ip}`;
+          li.textContent = `${ip.replaceAll('_', '.')} | ${data.org} | ${data.region} | ${data.country}`;
           list.appendChild(li);
         });
       }
