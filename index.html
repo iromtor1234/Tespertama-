@@ -12,6 +12,14 @@
       background: url('https://i.ibb.co/WxFVLDR/mountain-full.png') no-repeat center center fixed;
       background-size: cover;
       color: #fff;
+      overflow-x: hidden;
+    }
+    canvas.snow {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 9999;
     }
     .marquee {
       white-space: nowrap;
@@ -86,7 +94,8 @@
   </style>
 </head>
 <body>
-<div class="marquee">
+<canvas class="snow"></canvas>
+<audio id="bgmusic" src="https://cdn.pixabay.com/download/audio/2022/03/31/audio_18f2e327a5.mp3?filename=lofi-study-112191.mp3" loop></audio><div class="marquee" style="top: 40px;">
   <span id="marqueeText">[NEW KEY - Rull FUBUKI CHEAT ✅ ESP ✅ AIM ✅ WH 💸 30K]</span>
 </div><div class="container">
   <div class="box">
@@ -95,7 +104,24 @@
     <button onclick="getKey()">🎯 Get Key</button>
     <p id="keyResult" style="text-align:center;"></p>
     <button id="copyBtn" class="hidden" onclick="copyKey()">📋 Salin Key</button>
+    <button onclick="document.getElementById('bgmusic').play()">🔊 Play Music</button>
   </div>  <div class="box" id="adminPanel" style="display:none">
+    <h3 style="text-align:center">⚙️ Admin Panel</h3>
+    <input type="password" id="adminPw" placeholder="Password Admin">
+    <button onclick="checkAdmin()">🔓 Login</button>
+    <div id="adminControls" class="hidden">
+      <input type="text" id="newPw" placeholder="Password Baru">
+      <input type="text" id="newKey" placeholder="Key Baru">
+      <button onclick="saveKey()">💾 Simpan</button>
+      <input type="text" id="pwDelete" placeholder="Password yang ingin dihapus">
+      <button onclick="deleteKey()">🗑️ Hapus</button>
+      <input type="text" id="newMarquee" placeholder="Ubah Marquee">
+      <button onclick="changeMarquee()">🖊️ Ubah Marquee</button>
+      <button onclick="listAllKeys()">📜 Lihat Semua Key</button>
+      <ul id="keyList" style="font-size: 14px; padding-left: 20px;"></ul>
+      <h4>📡 Visitor Tracking</h4>
+      <ul id="visitorList" style="padding-left:20px;"></ul>
+    </div>
     <h3 style="text-align:center">⚙️ Admin Panel</h3>
     <input type="password" id="adminPw" placeholder="Password Admin">
     <button onclick="checkAdmin()">🔓 Login</button>
@@ -187,17 +213,64 @@
   }
 
   function loadVisitors() {
-    db.ref('visitors').get().then(snap => {
-      if (snap.exists()) {
-        const list = document.getElementById('visitorList');
-        list.innerHTML = '';
-        Object.entries(snap.val()).forEach(([ip, data]) => {
-          const li = document.createElement('li');
-          li.textContent = `${ip.replaceAll('_', '.')} | ${data.org} | ${data.region} | ${data.country}`;
-          list.appendChild(li);
-        });
-      }
+  db.ref('visitors').get().then(snap => {
+    if (snap.exists()) {
+      const list = document.getElementById('visitorList');
+      list.innerHTML = '';
+      Object.entries(snap.val()).forEach(([ip, data]) => {
+        const li = document.createElement('li');
+        li.textContent = `${ip.replaceAll('_', '.')} | ${data.org} | ${data.region} | ${data.country}`;
+        list.appendChild(li);
+      });
+    }
+  });
+}
+
+function listAllKeys() {
+  db.ref('keys').get().then(snap => {
+    if (snap.exists()) {
+      const keyList = document.getElementById('keyList');
+      keyList.innerHTML = '';
+      Object.entries(snap.val()).forEach(([pw, key]) => {
+        const li = document.createElement('li');
+        li.textContent = `${pw}: ${key}`;
+        keyList.appendChild(li);
+      });
+    }
+  });
+}
     });
   }
+
+  // Snowfall effect
+  const canvas = document.querySelector('.snow');
+  const ctx = canvas.getContext('2d');
+  let width = canvas.width = window.innerWidth;
+  let height = canvas.height = window.innerHeight;
+  let flakes = [];
+  for (let i = 0; i < 100; i++) flakes.push({ x: Math.random()*width, y: Math.random()*height, r: Math.random()*3+2, d: Math.random()*1+0.5 });
+  function drawSnow() {
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    for (let i = 0; i < flakes.length; i++) {
+      let f = flakes[i];
+      ctx.moveTo(f.x, f.y);
+      ctx.arc(f.x, f.y, f.r, 0, Math.PI*2, true);
+    }
+    ctx.fill();
+    updateFlakes();
+  }
+  function updateFlakes() {
+    for (let i = 0; i < flakes.length; i++) {
+      let f = flakes[i];
+      f.y += f.d;
+      if (f.y > height) {
+        flakes[i] = { x: Math.random()*width, y: 0, r: f.r, d: f.d };
+      }
+    }
+  }
+  setInterval(drawSnow, 33);
+  window.onresize = () => { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; }
 </script></body>
 </html>
