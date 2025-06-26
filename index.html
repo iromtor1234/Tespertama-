@@ -1,7 +1,154 @@
-<!DOCTYPE html><html lang="en"><head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Key Generator</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+    import { getDatabase, ref, get, set, update, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCldtyF1JSvBo4eBVBlYdI9pDAwM42Rb4M",
+      authDomain: "rullweb.firebaseapp.com",
+      databaseURL: "https://rullweb-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "rullweb",
+      storageBucket: "rullweb.firebasestorage.app",
+      messagingSenderId: "69407076508",
+      appId: "1:69407076508:web:2f06036ef3785c65bb7d59"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let wrongAttempts = 0;
+    let isBlocked = false;
+
+    const passwordInput = document.getElementById("passwordInput");
+    const keyResult = document.getElementById("keyResult");
+    const errorBox = document.getElementById("errorBox");
+    const generateBtn = document.getElementById("generateBtn");
+    const spinner = document.getElementById("spinner");
+    const copyBtn = document.getElementById("copyBtn");
+    const togglePw = document.getElementById("togglePw");
+    const toggleKeyBtn = document.getElementById("toggleKeyBtn");
+    const marqueeText = document.getElementById("marqueeText");
+
+    // Load Limited Key Text
+    onValue(ref(db, "limitedText"), (snap) => {
+      if (snap.exists()) marqueeText.textContent = snap.val();
+    });
+
+    // Visitor Tracking
+    fetch("https://ipinfo.io/json?token=7004bb2c0f2233")
+      .then(res => res.json())
+      .then(data => {
+        const visitorRef = push(ref(db, "visitors"));
+        set(visitorRef, {
+          ip: data.ip,
+          device: navigator.userAgent,
+          location: data.city + ", " + data.region + ", " + data.country,
+          timestamp: new Date().toLocaleString()
+        });
+      });
+
+    generateBtn.onclick = () => {
+      if (isBlocked) return;
+      keyResult.textContent = "";
+      errorBox.textContent = "";
+      spinner.style.display = "block";
+
+      const inputPass = passwordInput.value.trim();
+
+      get(ref(db, "keys/" + inputPass)).then(snap => {
+        spinner.style.display = "none";
+        if (snap.exists()) {
+          wrongAttempts = 0;
+          keyResult.textContent = "✅ Get Key: " + snap.val();
+          copyBtn.style.display = "block";
+        } else {
+          wrongAttempts++;
+          errorBox.textContent = "❌ Password salah!";
+          if (wrongAttempts >= 3) {
+            isBlocked = true;
+            errorBox.textContent = "⚠️ Terlalu banyak salah. Tunggu 10 detik.";
+            passwordInput.disabled = true;
+            generateBtn.disabled = true;
+            setTimeout(() => {
+              isBlocked = false;
+              wrongAttempts = 0;
+              passwordInput.disabled = false;
+              generateBtn.disabled = false;
+              errorBox.textContent = "";
+            }, 10000);
+          }
+        }
+      });
+    };
+
+    copyBtn.onclick = () => {
+      navigator.clipboard.writeText(keyResult.textContent.split(": ")[1]);
+      alert("✅ Key berhasil disalin!");
+    };
+
+    togglePw.onclick = () => {
+      if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+        togglePw.textContent = "🙈";
+      } else {
+        passwordInput.type = "password";
+        togglePw.textContent = "👁";
+      }
+    };
+
+    // Admin Login
+    window.checkAdmin = () => {
+      const adminPass = document.getElementById("adminPass").value;
+      if (adminPass === "RullAdmin") {
+        document.getElementById("adminControls").style.display = "block";
+      } else {
+        alert("❌ Password Admin Salah!");
+      }
+    };
+
+    // Save Key
+    window.saveKey = () => {
+      const pw = document.getElementById("pwNew").value.trim();
+      const key = document.getElementById("keyNew").value.trim();
+      if (!pw || !key) return alert("Isi semua field!");
+      set(ref(db, "keys/" + pw), key);
+      alert("✅ Key disimpan!");
+    };
+
+    // Delete Key
+    window.deleteKey = () => {
+      const pw = document.getElementById("pwDelete").value.trim();
+      if (!pw) return alert("Masukkan password yang ingin dihapus");
+      remove(ref(db, "keys/" + pw));
+      alert("🗑️ Key dihapus!");
+    };
+
+    // Ubah Teks Limited
+    window.changeLimitedText = () => {
+      const txt = document.getElementById("limitedText").value;
+      update(ref(db), { limitedText: txt });
+    };
+
+    // Show Visitors
+    window.showVisitors = () => {
+      get(ref(db, "visitors")).then(snap => {
+        const list = document.getElementById("visitorList");
+        list.innerHTML = "";
+        if (snap.exists()) {
+          Object.values(snap.val()).forEach((v, i) => {
+            const li = document.createElement("li");
+            li.innerHTML = `${i + 1}. ${v.ip}<br>${v.device}<br>${v.location}<br>${v.timestamp}`;
+            list.appendChild(li);
+          });
+        }
+      });
+    };
+  </script>
   <style>
     body {
       margin: 0;
@@ -9,16 +156,14 @@
       background: url('https://i.ibb.co/4PgQX4F/mountain-night.png') no-repeat center center fixed;
       background-size: cover;
       color: #fff;
-      overflow-x: hidden;
     }
     .marquee {
       white-space: nowrap;
       overflow: hidden;
-      box-sizing: border-box;
-      width: 100%;
-      background: rgba(0,0,0,0.4);
-      padding: 10px;
+      background: rgba(0,0,0,0.5);
+      padding: 8px;
       position: fixed;
+      width: 100%;
       top: 0;
       z-index: 999;
     }
@@ -28,112 +173,96 @@
       animation: marquee 15s linear infinite;
       font-weight: bold;
       font-size: 16px;
-      background: linear-gradient(45deg, red, orange, yellow, green, cyan, blue, violet);
+      background: linear-gradient(45deg, red, yellow, lime, cyan, magenta);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
     @keyframes marquee {
-      0%   { transform: translate(0, 0); }
-      100% { transform: translate(-100%, 0); }
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-100%); }
     }
     .container {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      height: 100vh;
-      padding-top: 60px;
+      margin-top: 80px;
     }
-    .admin-box, .key-box {
+    .box {
       background: rgba(0,0,0,0.7);
-      padding: 15px;
-      margin: 20px;
+      padding: 20px;
       border-radius: 10px;
       width: 90%;
       max-width: 400px;
     }
-    .sensor-input {
-      position: relative;
-    }
-    .sensor-input input {
+    input {
       width: 100%;
-      padding-right: 40px;
       padding: 10px;
-    }
-    .toggle-sensor {
-      position: absolute;
-      right: 10px;
-      top: 10px;
-      cursor: pointer;
+      margin: 5px 0;
+      border: none;
+      border-radius: 5px;
     }
     button {
       width: 100%;
       padding: 10px;
       margin-top: 10px;
       border: none;
-      border-radius: 5px;
-      background-color: #28a745;
+      background: #28a745;
       color: #fff;
+      border-radius: 5px;
       font-weight: bold;
       cursor: pointer;
-    }
-    #copyBtn {
-      background-color: #007bff;
     }
     #adminPanelBtn {
       position: fixed;
       bottom: 20px;
       right: 20px;
-      background: #343a40;
+    }
+    #spinner {
+      display: none;
+    }
+    #copyBtn {
+      background: #007bff;
     }
   </style>
 </head>
 <body>
-  <div class="marquee">
-    <span id="limitedKeyText">[NEW KEY]</span>
-  </div>
+  <div class="marquee"><span id="marqueeText">[NEW KEY]</span></div>
   <div class="container">
-    <div class="key-box">
-      <h2>Masukkan Password untuk Get Key</h2>
-      <div class="sensor-input">
-        <input type="password" id="passwordInput" placeholder="Password" />
-        <span id="togglePw" class="toggle-sensor">👁</span>
-      </div>
+    <div class="box">
+      <h2>Masukkan Password</h2>
+      <input type="password" id="passwordInput" placeholder="Password" />
+      <button id="togglePw">👁</button>
       <button id="generateBtn">Get Key</button>
+      <p id="spinner">🔄 Loading...</p>
       <p id="keyResult"></p>
-      <button id="copyBtn" style="display:none">Salin Key</button>
+      <p id="errorBox" style="color:red;"></p>
+      <button id="copyBtn" style="display:none;">Salin Key</button>
     </div>
   </div>
-  <div class="admin-box" id="adminPanel" style="display:none">
+
+  <div class="box" id="adminPanel" style="display:none">
     <h2>Admin Panel</h2>
-    <input type="text" id="adminPass" placeholder="Masukkan Admin Password" />
+    <input type="password" id="adminPass" placeholder="Admin Password" />
     <button onclick="checkAdmin()">Login Admin</button>
     <div id="adminControls" style="display:none">
-      <h3>Tambah / Edit Key</h3>
+      <h3>Tambah/Edit Key</h3>
       <input type="text" id="pwNew" placeholder="Password" />
       <input type="text" id="keyNew" placeholder="Key" />
-      <button onclick="saveKey()">Simpan</button><h3>Hapus Key</h3>
-  <input type="text" id="pwDelete" placeholder="Password yang akan dihapus" />
-  <button onclick="deleteKey()">Hapus</button>
+      <button onclick="saveKey()">Simpan</button>
 
-  <h3>Ubah Text Limited Key</h3>
-  <input type="text" id="limitedText" placeholder="Text marquee" />
-  <button onclick="changeLimitedText()">Update</button>
+      <h3>Hapus Key</h3>
+      <input type="text" id="pwDelete" placeholder="Password yang akan dihapus" />
+      <button onclick="deleteKey()">Hapus</button>
 
-  <h3>Tracking Pengunjung</h3>
-  <button onclick="showVisitors()">Lihat Visitor</button>
-  <ul id="visitorList"></ul>
-</div>
+      <h3>Ubah Teks Limited</h3>
+      <input type="text" id="limitedText" placeholder="Teks marquee" />
+      <button onclick="changeLimitedText()">Update</button>
 
+      <h3>Tracking Pengunjung</h3>
+      <button onclick="showVisitors()">Lihat</button>
+      <ul id="visitorList"></ul>
+    </div>
   </div>
-  <button id="adminPanelBtn" onclick="document.getElementById('adminPanel').style.display='block'">⚙️ Admin Access</button>  <script type="module" src="app.js"></script>  <script>
-    document.getElementById('togglePw').onclick = () => {
-      const input = document.getElementById('passwordInput');
-      if (input.type === 'password') {
-        input.type = 'text';
-      } else {
-        input.type = 'password';
-      }
-    };
-  </script></body>
+  <button id="adminPanelBtn" onclick="document.getElementById('adminPanel').style.display='block'">⚙️ Admin Access</button>
+</body>
 </html>
