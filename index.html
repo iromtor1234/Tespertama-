@@ -3,7 +3,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rull Key Access</title>
-  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js">function toggleAdminPanel() {
+  const panel = document.getElementById('adminPanel');
+  if (panel.style.display === 'block') {
+    panel.style.display = 'none';
+  } else {
+    panel.style.display = 'block';
+  }
+}</script>
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-database-compat.js"></script>
   <style>
     body {
@@ -140,7 +147,7 @@
       <ul id="visitorList" style="padding-left:20px;"></ul>
     </div>
   </div>
-</div><button id="adminBtn" onclick="document.getElementById('adminPanel').style.display='block'">⚙️</button>
+</div><button id="adminBtn" onclick="toggleAdminPanel()">⚙️</button>
 
 <script>
   const firebaseConfig = {
