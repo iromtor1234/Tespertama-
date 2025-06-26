@@ -1,10 +1,10 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html><html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Key Generator Admin</title>
-  <script type="module" src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rull Key Access</title>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-database-compat.js"></script>
   <style>
     body {
       margin: 0;
@@ -12,63 +12,165 @@
       background: url('https://i.ibb.co/4PgQX4F/mountain-night.png') no-repeat center center fixed;
       background-size: cover;
       color: #fff;
-      overflow-x: hidden;
     }
     .marquee {
       white-space: nowrap;
       overflow: hidden;
-      box-sizing: border-box;
-      width: 100%;
-      background: rgba(0,0,0,0.4);
+      background: rgba(0,0,0,0.6);
       padding: 10px;
       position: fixed;
       top: 0;
-      z-index: 999;
+      width: 100%;
+      z-index: 10;
     }
     .marquee span {
       display: inline-block;
       padding-left: 100%;
-      animation: marquee 15s linear infinite;
+      animation: marquee 12s linear infinite;
       font-weight: bold;
-      font-size: 16px;
-      background: linear-gradient(45deg, red, orange, yellow, green, cyan, blue, violet);
+      background: linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
     @keyframes marquee {
-      0%   { transform: translate(0, 0); }
+      0% { transform: translate(0, 0); }
       100% { transform: translate(-100%, 0); }
     }
     .container {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      height: 100vh;
-      padding-top: 60px;
+      padding-top: 80px;
     }
     .box {
       background: rgba(0,0,0,0.7);
-      padding: 15px;
-      margin: 20px;
+      padding: 20px;
+      margin: 15px;
       border-radius: 10px;
       width: 90%;
       max-width: 400px;
     }
     input, button {
       width: 100%;
-      margin-top: 10px;
       padding: 10px;
+      margin-top: 10px;
       border-radius: 5px;
       border: none;
     }
     button {
-      font-weight: bold;
       background-color: #28a745;
       color: white;
+      font-weight: bold;
     }
+    #copyBtn { background-color: #007bff; }
     #adminBtn {
       position: fixed;
-      bottom: 10px;
-      right: 10px;
-      padding: 10px 15px;
+      bottom: 15px;
+      right: 15px;
+      background: #343a40;
+      font-size: 14px;
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+<div class="marquee">
+  <span id="marqueeText">[NEW KEY - Rull FUBUKI CHEAT ✅ ESP ✅ AIM ✅ WH 💸 30K]</span>
+</div><div class="container">
+  <div class="box">
+    <h2>Masukkan Password</h2>
+    <input type="password" id="passwordInput" placeholder="Password">
+    <button onclick="getKey()">Get Key</button>
+    <p id="keyResult"></p>
+    <button id="copyBtn" class="hidden" onclick="copyKey()">Salin Key</button>
+  </div>  <div class="box" id="adminPanel" style="display:none">
+    <h3>Admin Access</h3>
+    <input type="password" id="adminPw" placeholder="Admin Password">
+    <button onclick="checkAdmin()">Login</button>
+    <div id="adminControls" class="hidden">
+      <input type="text" id="newPw" placeholder="Password Baru">
+      <input type="text" id="newKey" placeholder="Key Baru">
+      <button onclick="saveKey()">Simpan</button>
+      <input type="text" id="pwDelete" placeholder="Password yang ingin dihapus">
+      <button onclick="deleteKey()">Hapus</button>
+      <input type="text" id="newMarquee" placeholder="Ubah Marquee">
+      <button onclick="changeMarquee()">Ubah Marquee</button>
+      <h4>Tracking Pengunjung</h4>
+      <ul id="visitorList"></ul>
+    </div>
+  </div>
+</div><button id="adminBtn" onclick="document.getElementById('adminPanel').style.display='block'">⚙️ Admin</button>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCldtyF1JSvBo4eBVBlYdI9pDAwM42Rb4M",
+    authDomain: "rullweb.firebaseapp.com",
+    databaseURL: "https://rullweb-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "rullweb",
+    storageBucket: "rullweb.appspot.com",
+    messagingSenderId: "69407076508",
+    appId: "1:69407076508:web:2f06036ef3785c65bb7d59"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  function getKey() {
+    const pw = document.getElementById('passwordInput').value;
+    db.ref('keys/' + pw).get().then(snap => {
+      if (snap.exists()) {
+        document.getElementById('keyResult').textContent = 'Key: ' + snap.val();
+        document.getElementById('copyBtn').classList.remove('hidden');
+      } else {
+        document.getElementById('keyResult').textContent = 'Password salah';
+        document.getElementById('copyBtn').classList.add('hidden');
+      }
+    });
+  }
+
+  function copyKey() {
+    navigator.clipboard.writeText(document.getElementById('keyResult').textContent);
+    alert('Key berhasil disalin!');
+  }
+
+  function checkAdmin() {
+    if (document.getElementById('adminPw').value === 'RullAdmin') {
+      document.getElementById('adminControls').classList.remove('hidden');
+      loadVisitors();
+    } else {
+      alert('Password admin salah');
+    }
+  }
+
+  function saveKey() {
+    const pw = document.getElementById('newPw').value;
+    const key = document.getElementById('newKey').value;
+    db.ref('keys/' + pw).set(key);
+    alert('Key disimpan');
+  }
+
+  function deleteKey() {
+    const pw = document.getElementById('pwDelete').value;
+    db.ref('keys/' + pw).remove();
+    alert('Key dihapus');
+  }
+
+  function changeMarquee() {
+    const txt = document.getElementById('newMarquee').value;
+    document.getElementById('marqueeText').textContent = `[${txt}]`;
+  }
+
+  function loadVisitors() {
+    db.ref('visitors').get().then(snap => {
+      if (snap.exists()) {
+        const list = document.getElementById('visitorList');
+        list.innerHTML = '';
+        Object.entries(snap.val()).forEach(([ip, data]) => {
+          const li = document.createElement('li');
+          li.textContent = `${data.device || 'device'} - ${data.country || 'Negara'} - ${ip}`;
+          list.appendChild(li);
+        });
+      }
+    });
+  }
+</script></body>
+</html>
