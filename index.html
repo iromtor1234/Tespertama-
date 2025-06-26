@@ -3,17 +3,172 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Key Generator</title>
+  <title>Rull Key Generator</title>
+  <script type="module" src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: url('https://i.ibb.co/4PgQX4F/mountain-night.png') no-repeat center center fixed;
+      background-size: cover;
+      overflow-x: hidden;
+      color: white;
+    }
+
+    .marquee {
+      background: rgba(0,0,0,0.6);
+      padding: 10px;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      z-index: 10;
+    }
+
+    .marquee span {
+      display: inline-block;
+      padding-left: 100%;
+      animation: scroll 12s linear infinite;
+      font-weight: bold;
+      font-size: 16px;
+      background: linear-gradient(45deg, #f00, #0f0, #00f, #ff0, #0ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    @keyframes scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-100%); }
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 90vh;
+      text-align: center;
+    }
+
+    .box {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 400px;
+      width: 90%;
+      margin-top: 80px;
+    }
+
+    input[type="password"], input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      border-radius: 6px;
+      border: none;
+      font-size: 16px;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 10px;
+      width: 100%;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      background: #00c9ff;
+      color: white;
+      cursor: pointer;
+    }
+
+    #keyResult {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .admin-box {
+      display: none;
+      background: rgba(0,0,0,0.6);
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+
+    .admin-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #444;
+      border-radius: 50%;
+      padding: 15px;
+      font-size: 20px;
+    }
+
+    canvas.snow {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    audio {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="snow" class="snow"></canvas>
+
+  <div class="marquee">
+    <span id="marqueeText">[NEW KEY]</span>
+  </div>
+
+  <div class="container">
+    <div class="box">
+      <h2>Masukkan Password untuk Get Key</h2>
+      <input type="password" id="passwordInput" placeholder="Password" />
+      <button onclick="togglePw()">👁 Show/Hide</button>
+      <button onclick="getKey()">🎯 Get Key</button>
+      <p id="keyResult"></p>
+      <button id="copyBtn" onclick="copyKey()" style="display:none">📋 Salin Key</button>
+    </div>
+
+    <div id="adminPanel" class="admin-box">
+      <h3>Admin Panel</h3>
+      <input type="password" id="adminPass" placeholder="Admin Password" />
+      <button onclick="checkAdmin()">🔐 Login</button>
+      <div id="adminContent" style="display:none">
+        <input type="text" id="newPw" placeholder="Password Baru" />
+        <input type="text" id="newKey" placeholder="Key Baru" />
+        <button onclick="saveKey()">💾 Simpan Key</button>
+
+        <input type="text" id="delPw" placeholder="Password yang Dihapus" />
+        <button onclick="deleteKey()">🗑 Hapus Key</button>
+
+        <input type="text" id="newText" placeholder="Text LIMITED KEY" />
+        <button onclick="updateMarquee()">✨ Update Text</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="admin-btn" onclick="document.getElementById('adminPanel').style.display='block'">⚙️</button>
+
+  <audio id="music" src="https://cdn.pixabay.com/download/audio/2023/03/29/audio_f3a3eabb43.mp3" controls loop></audio>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
-    import { getDatabase, ref, get, set, update, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
+    import { getDatabase, ref, get, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCldtyF1JSvBo4eBVBlYdI9pDAwM42Rb4M",
       authDomain: "rullweb.firebaseapp.com",
       databaseURL: "https://rullweb-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "rullweb",
-      storageBucket: "rullweb.firebasestorage.app",
+      storageBucket: "rullweb.appspot.com",
       messagingSenderId: "69407076508",
       appId: "1:69407076508:web:2f06036ef3785c65bb7d59"
     };
@@ -21,248 +176,102 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    let wrongAttempts = 0;
-    let isBlocked = false;
+    let isAdmin = false;
 
-    const passwordInput = document.getElementById("passwordInput");
-    const keyResult = document.getElementById("keyResult");
-    const errorBox = document.getElementById("errorBox");
-    const generateBtn = document.getElementById("generateBtn");
-    const spinner = document.getElementById("spinner");
-    const copyBtn = document.getElementById("copyBtn");
-    const togglePw = document.getElementById("togglePw");
-    const toggleKeyBtn = document.getElementById("toggleKeyBtn");
-    const marqueeText = document.getElementById("marqueeText");
-
-    // Load Limited Key Text
-    onValue(ref(db, "limitedText"), (snap) => {
-      if (snap.exists()) marqueeText.textContent = snap.val();
-    });
-
-    // Visitor Tracking
-    fetch("https://ipinfo.io/json?token=7004bb2c0f2233")
-      .then(res => res.json())
-      .then(data => {
-        const visitorRef = push(ref(db, "visitors"));
-        set(visitorRef, {
-          ip: data.ip,
-          device: navigator.userAgent,
-          location: data.city + ", " + data.region + ", " + data.country,
-          timestamp: new Date().toLocaleString()
-        });
-      });
-
-    generateBtn.onclick = () => {
-      if (isBlocked) return;
-      keyResult.textContent = "";
-      errorBox.textContent = "";
-      spinner.style.display = "block";
-
-      const inputPass = passwordInput.value.trim();
-
-      get(ref(db, "keys/" + inputPass)).then(snap => {
-        spinner.style.display = "none";
-        if (snap.exists()) {
-          wrongAttempts = 0;
-          keyResult.textContent = "✅ Get Key: " + snap.val();
-          copyBtn.style.display = "block";
-        } else {
-          wrongAttempts++;
-          errorBox.textContent = "❌ Password salah!";
-          if (wrongAttempts >= 3) {
-            isBlocked = true;
-            errorBox.textContent = "⚠️ Terlalu banyak salah. Tunggu 10 detik.";
-            passwordInput.disabled = true;
-            generateBtn.disabled = true;
-            setTimeout(() => {
-              isBlocked = false;
-              wrongAttempts = 0;
-              passwordInput.disabled = false;
-              generateBtn.disabled = false;
-              errorBox.textContent = "";
-            }, 10000);
-          }
-        }
-      });
-    };
-
-    copyBtn.onclick = () => {
-      navigator.clipboard.writeText(keyResult.textContent.split(": ")[1]);
-      alert("✅ Key berhasil disalin!");
-    };
-
-    togglePw.onclick = () => {
-      if (passwordInput.type === "password") {
-        passwordInput.type = "text";
-        togglePw.textContent = "🙈";
+    window.getKey = async () => {
+      const pw = document.getElementById('passwordInput').value;
+      const snap = await get(ref(db, 'keys/' + pw));
+      if (snap.exists()) {
+        const key = snap.val();
+        document.getElementById('keyResult').textContent = "🔑 Key: " + key;
+        document.getElementById('copyBtn').style.display = 'block';
+        document.getElementById('copyBtn').setAttribute("data-key", key);
       } else {
-        passwordInput.type = "password";
-        togglePw.textContent = "👁";
+        document.getElementById('keyResult').textContent = "❌ Password tidak ditemukan";
       }
     };
 
-    // Admin Login
+    window.copyKey = () => {
+      const key = document.getElementById('copyBtn').getAttribute("data-key");
+      navigator.clipboard.writeText(key);
+      alert("Key berhasil disalin!");
+    };
+
+    window.togglePw = () => {
+      const input = document.getElementById("passwordInput");
+      input.type = input.type === "password" ? "text" : "password";
+    };
+
     window.checkAdmin = () => {
-      const adminPass = document.getElementById("adminPass").value;
-      if (adminPass === "RullAdmin") {
-        document.getElementById("adminControls").style.display = "block";
+      const input = document.getElementById("adminPass").value;
+      if (input === "RullAdmin") {
+        isAdmin = true;
+        document.getElementById("adminContent").style.display = "block";
+        alert("Login berhasil!");
       } else {
-        alert("❌ Password Admin Salah!");
+        alert("Password Admin salah!");
       }
     };
 
-    // Save Key
     window.saveKey = () => {
-      const pw = document.getElementById("pwNew").value.trim();
-      const key = document.getElementById("keyNew").value.trim();
-      if (!pw || !key) return alert("Isi semua field!");
-      set(ref(db, "keys/" + pw), key);
-      alert("✅ Key disimpan!");
+      if (!isAdmin) return alert("Bukan Admin!");
+      const pw = document.getElementById("newPw").value;
+      const key = document.getElementById("newKey").value;
+      set(ref(db, 'keys/' + pw), key);
+      alert("Key disimpan!");
     };
 
-    // Delete Key
     window.deleteKey = () => {
-      const pw = document.getElementById("pwDelete").value.trim();
-      if (!pw) return alert("Masukkan password yang ingin dihapus");
-      remove(ref(db, "keys/" + pw));
-      alert("🗑️ Key dihapus!");
+      if (!isAdmin) return alert("Bukan Admin!");
+      const pw = document.getElementById("delPw").value;
+      remove(ref(db, 'keys/' + pw));
+      alert("Key dihapus!");
     };
 
-    // Ubah Teks Limited
-    window.changeLimitedText = () => {
-      const txt = document.getElementById("limitedText").value;
-      update(ref(db), { limitedText: txt });
-    };
-
-    // Show Visitors
-    window.showVisitors = () => {
-      get(ref(db, "visitors")).then(snap => {
-        const list = document.getElementById("visitorList");
-        list.innerHTML = "";
-        if (snap.exists()) {
-          Object.values(snap.val()).forEach((v, i) => {
-            const li = document.createElement("li");
-            li.innerHTML = `${i + 1}. ${v.ip}<br>${v.device}<br>${v.location}<br>${v.timestamp}`;
-            list.appendChild(li);
-          });
-        }
-      });
+    window.updateMarquee = () => {
+      const txt = document.getElementById("newText").value;
+      document.getElementById("marqueeText").textContent = `[${txt}]`;
     };
   </script>
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: url('https://i.ibb.co/4PgQX4F/mountain-night.png') no-repeat center center fixed;
-      background-size: cover;
-      color: #fff;
-    }
-    .marquee {
-      white-space: nowrap;
-      overflow: hidden;
-      background: rgba(0,0,0,0.5);
-      padding: 8px;
-      position: fixed;
-      width: 100%;
-      top: 0;
-      z-index: 999;
-    }
-    .marquee span {
-      display: inline-block;
-      padding-left: 100%;
-      animation: marquee 15s linear infinite;
-      font-weight: bold;
-      font-size: 16px;
-      background: linear-gradient(45deg, red, yellow, lime, cyan, magenta);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    @keyframes marquee {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-100%); }
-    }
-    .container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-top: 80px;
-    }
-    .box {
-      background: rgba(0,0,0,0.7);
-      padding: 20px;
-      border-radius: 10px;
-      width: 90%;
-      max-width: 400px;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin: 5px 0;
-      border: none;
-      border-radius: 5px;
-    }
-    button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      border: none;
-      background: #28a745;
-      color: #fff;
-      border-radius: 5px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    #adminPanelBtn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-    }
-    #spinner {
-      display: none;
-    }
-    #copyBtn {
-      background: #007bff;
-    }
-  </style>
-</head>
-<body>
-  <div class="marquee"><span id="marqueeText">[NEW KEY]</span></div>
-  <div class="container">
-    <div class="box">
-      <h2>Masukkan Password</h2>
-      <input type="password" id="passwordInput" placeholder="Password" />
-      <button id="togglePw">👁</button>
-      <button id="generateBtn">Get Key</button>
-      <p id="spinner">🔄 Loading...</p>
-      <p id="keyResult"></p>
-      <p id="errorBox" style="color:red;"></p>
-      <button id="copyBtn" style="display:none;">Salin Key</button>
-    </div>
-  </div>
 
-  <div class="box" id="adminPanel" style="display:none">
-    <h2>Admin Panel</h2>
-    <input type="password" id="adminPass" placeholder="Admin Password" />
-    <button onclick="checkAdmin()">Login Admin</button>
-    <div id="adminControls" style="display:none">
-      <h3>Tambah/Edit Key</h3>
-      <input type="text" id="pwNew" placeholder="Password" />
-      <input type="text" id="keyNew" placeholder="Key" />
-      <button onclick="saveKey()">Simpan</button>
+  <script>
+    const canvas = document.getElementById("snow");
+    const ctx = canvas.getContext("2d");
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
 
-      <h3>Hapus Key</h3>
-      <input type="text" id="pwDelete" placeholder="Password yang akan dihapus" />
-      <button onclick="deleteKey()">Hapus</button>
+    let flakes = Array.from({length: 100}, () => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      r: Math.random() * 3 + 1,
+      d: Math.random() * 1
+    }));
 
-      <h3>Ubah Teks Limited</h3>
-      <input type="text" id="limitedText" placeholder="Teks marquee" />
-      <button onclick="changeLimitedText()">Update</button>
+    function drawFlakes() {
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "white";
+      ctx.beginPath();
+      for (let f of flakes) {
+        ctx.moveTo(f.x, f.y);
+        ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2, true);
+      }
+      ctx.fill();
+      moveFlakes();
+    }
 
-      <h3>Tracking Pengunjung</h3>
-      <button onclick="showVisitors()">Lihat</button>
-      <ul id="visitorList"></ul>
-    </div>
-  </div>
-  <button id="adminPanelBtn" onclick="document.getElementById('adminPanel').style.display='block'">⚙️ Admin Access</button>
+    function moveFlakes() {
+      for (let f of flakes) {
+        f.y += f.d;
+        if (f.y > height) {
+          f.y = 0;
+          f.x = Math.random() * width;
+        }
+      }
+    }
+
+    setInterval(drawFlakes, 30);
+  </script>
 </body>
 </html>
