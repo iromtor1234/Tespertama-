@@ -1,2 +1,243 @@
-<h1> hallo semua, nungguin yah update web nya sabar yah</h1>
-<h2> besok udh bisa di akses lagi kok, jadi sabar yah</h2>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Key Generator Lengkap + Buy</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #101820;
+      background-image: url('https://i.ibb.co/4PgQX4F/mountain-night.png');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: white;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    .box {
+      background: rgba(0,0,0,0.65);
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px auto;
+      max-width: 400px;
+      box-shadow: 0 0 10px cyan;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #timeLeft {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: yellow;
+    }
+    .marquee {
+      width: 100%;
+      overflow: hidden;
+      background: black;
+      padding: 10px 0;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .marquee span {
+      display: inline-block;
+      white-space: nowrap;
+      animation: slide 12s linear infinite;
+      color: lime;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    @keyframes slide {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+    .hidden { display: none; }
+    .copy-toggle {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .copy-toggle button {
+      width: auto;
+      flex: 1;
+    }
+    #buySection a {
+      color: #00ffff;
+      font-weight: bold;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="marquee">
+  <span id="limitedText">[___] Limited Key Aktif</span>
+</div>
+
+<div class="box">
+  <h2>Masukkan Password</h2>
+  <input type="text" id="pwInput" placeholder="Password">
+  <button onclick="validatePassword()">Lanjut</button>
+
+  <div id="humanCheck" class="hidden">
+    <label><input type="checkbox" id="humanBox"> Saya bukan robot</label>
+    <button onclick="showKey()" id="keyBtn" disabled>Get Key</button>
+  </div>
+
+  <p id="resultText"></p>
+  <div id="copyArea" class="hidden">
+    <p id="keyDisplay"></p>
+    <div class="copy-toggle">
+      <button onclick="copyKey()">📋 Salin</button>
+      <button onclick="toggleKey()" id="toggleBtn">🙈 Sembunyikan</button>
+    </div>
+  </div>
+  <p id="timeLeft"></p>
+
+  <button onclick="toggleBuy()">💸 Buy Key</button>
+  <div id="buySection" class="hidden" style="margin-top: 15px;">
+    <p>WhatsApp: <a href="https://wa.me/6283843182126" target="_blank">wa.me/6283843182126</a></p>
+    <p>Telegram: <a href="https://t.me/RullReal" target="_blank">@RullReal</a></p>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-database-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCldtyF1JSvBo4eBVBlYdI9pDAwM42Rb4M",
+    authDomain: "rullweb.firebaseapp.com",
+    databaseURL: "https://rullweb-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "rullweb",
+    storageBucket: "rullweb.appspot.com",
+    messagingSenderId: "69407076508",
+    appId: "1:69407076508:web:2f06036ef3785c65bb7d59"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  let currentData = null;
+  let currentPassword = "";
+  let keyVisible = true;
+
+  function validatePassword() {
+    const pw = document.getElementById("pwInput").value;
+    currentPassword = pw;
+    document.getElementById("resultText").textContent = "";
+    document.getElementById("copyArea").classList.add("hidden");
+    document.getElementById("keyBtn").disabled = true;
+    document.getElementById("humanBox").checked = false;
+    document.getElementById("humanCheck").classList.add("hidden");
+
+    db.ref("keys/" + pw).get().then(snap => {
+      if (!snap.exists()) {
+        document.getElementById("resultText").textContent = "❌ Password tidak ditemukan";
+        return;
+      }
+      const data = snap.val();
+      if (!data.exp) {
+        document.getElementById("resultText").textContent = "⚠️ Data key tidak memiliki waktu exp";
+        return;
+      }
+      const now = new Date();
+      const exp = new Date(data.exp);
+      if (now >= exp) {
+        db.ref("keys/" + pw).remove();
+        document.getElementById("resultText").textContent = "⚠️ Waktu key telah habis";
+        return;
+      }
+      currentData = data;
+      document.getElementById("resultText").textContent = "✅ Password benar, verifikasi Anda bukan robot:";
+      document.getElementById("humanCheck").classList.remove("hidden");
+    });
+  }
+
+  document.getElementById("humanBox").addEventListener("change", () => {
+    document.getElementById("keyBtn").disabled = !document.getElementById("humanBox").checked;
+  });
+
+  function showKey() {
+    const keyText = currentData.key;
+    const expTime = new Date(currentData.exp);
+    const now = new Date();
+    const timeEl = document.getElementById("timeLeft");
+
+    if (now >= expTime) {
+      db.ref("keys/" + currentPassword).remove();
+      document.getElementById("resultText").textContent = "⚠️ Waktu key telah habis";
+      return;
+    }
+
+    document.getElementById("keyDisplay").textContent = keyText;
+    keyVisible = true;
+    document.getElementById("toggleBtn").textContent = "🙈 Sembunyikan";
+    document.getElementById("copyArea").classList.remove("hidden");
+    updateCountdown(expTime, timeEl);
+    const timer = setInterval(() => {
+      const now = new Date();
+      if (now >= expTime) {
+        clearInterval(timer);
+        db.ref("keys/" + currentPassword).remove();
+        timeEl.textContent = "⚠️ Waktu key telah habis";
+        document.getElementById("keyDisplay").textContent = "";
+        document.getElementById("copyArea").classList.add("hidden");
+      } else {
+        updateCountdown(expTime, timeEl);
+      }
+    }, 60000);
+  }
+
+  function updateCountdown(exp, el) {
+    const now = new Date();
+    let diff = Math.floor((exp - now) / 1000);
+    const h = Math.floor(diff / 3600);
+    const m = Math.floor((diff % 3600) / 60);
+    el.textContent = `⏳ Sisa waktu: ${h} jam ${m} menit`;
+  }
+
+  function copyKey() {
+    navigator.clipboard.writeText(currentData.key).then(() => {
+      alert("✅ Key disalin!");
+    });
+  }
+
+  function toggleKey() {
+    const el = document.getElementById("keyDisplay");
+    const btn = document.getElementById("toggleBtn");
+    if (keyVisible) {
+      el.textContent = "••••••••••••••••••••••";
+      btn.textContent = "👁 Tampilkan";
+      keyVisible = false;
+    } else {
+      el.textContent = currentData.key;
+      btn.textContent = "🙈 Sembunyikan";
+      keyVisible = true;
+    }
+  }
+
+  function toggleBuy() {
+    document.getElementById("buySection").classList.toggle("hidden");
+  }
+
+  db.ref("settings/marquee").once("value", snap => {
+    if (snap.exists()) {
+      document.getElementById("limitedText").textContent = "[___] " + snap.val();
+    }
+  });
+</script>
+</body>
+</html>
